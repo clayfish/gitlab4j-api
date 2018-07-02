@@ -11,7 +11,7 @@ To utilize the GitLab API for Java in your project, simply add the following dep
 ```java
 dependencies {
     ...
-    compile group: 'org.gitlab4j', name: 'gitlab4j-api', version: '4.8.20'
+    compile group: 'org.gitlab4j', name: 'gitlab4j-api', version: '4.8.27'
 }
 ```
 
@@ -20,14 +20,14 @@ dependencies {
 <dependency>
     <groupId>org.gitlab4j</groupId>
     <artifactId>gitlab4j-api</artifactId>
-    <version>4.8.20</version>
+    <version>4.8.27</version>
 </dependency>
 ```
 
 **Ivy and SBT**<br/>
 There have been reports of problems resolving some dependencies when using Ivy or SBT, for help resolving those issues see:<br/>
-<a href="https://github.com/jax-rs/api/issues/571">JAX-RS API Issue #571</a><br/>
-<a href="https://github.com/jax-rs/api/issues/572">JAX-RS API Issue #572</a>
+<a href="https://github.com/eclipse-ee4j/jaxrs-api/issues/571">JAX-RS API Issue #571</a><br/>
+<a href="https://github.com/eclipse-ee4j/jaxrs-api/issues/572">JAX-RS API Issue #572</a>
 
 ---
 

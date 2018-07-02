@@ -164,7 +164,7 @@ public class TestRepositoryApi {
         Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
         assertNotNull(project);
 
-        File file = gitLabApi.getRepositoryApi().getRepositoryArchive(project.getId(), "master", null);
+        File file = gitLabApi.getRepositoryApi().getRepositoryArchive(project.getId(), "master", (File)null);
         assertTrue(file.length() > 0);
         file.delete();
 
@@ -230,6 +230,21 @@ public class TestRepositoryApi {
         RepositoryFile file = new RepositoryFile();
         file.setFilePath(TEST_FILEPATH);
         file.setContent("This is a test file.");
+        RepositoryFile createdFile = gitLabApi.getRepositoryFileApi().createFile(file, project.getId(), TEST_BRANCH_NAME, "Testing createFile().");
+        assertNotNull(createdFile);
+
+        gitLabApi.getRepositoryFileApi().deleteFile(TEST_FILEPATH, project.getId(), TEST_BRANCH_NAME, "Testing deleteFile().");
+    }
+
+    @Test
+    public void testCreateFileWithEmptyContent() throws GitLabApiException {
+
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        RepositoryFile file = new RepositoryFile();
+        file.setFilePath(TEST_FILEPATH);
+        file.setContent("");
         RepositoryFile createdFile = gitLabApi.getRepositoryFileApi().createFile(file, project.getId(), TEST_BRANCH_NAME, "Testing createFile().");
         assertNotNull(createdFile);
 

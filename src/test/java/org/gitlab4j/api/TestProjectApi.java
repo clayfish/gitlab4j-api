@@ -31,6 +31,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.ws.rs.core.Response;
@@ -279,6 +280,23 @@ public class TestProjectApi {
         assertEquals(TEST_PROJECT_NAME_1, projects.get(1).getName());
     }
 
+
+    @Test
+    public void testListProjectsWithStatistics() throws GitLabApiException {
+
+        List<Project> projects = gitLabApi.getProjectApi().getProjects(false, null,
+                Constants.ProjectOrderBy.NAME, Constants.SortOrder.DESC, null, false, false, false, false, true);
+        assertNotNull(projects);
+        assertTrue(projects.size() >= 2);
+
+        assertNotNull(projects.get(0).getStatistics());
+        assertNotNull(projects.get(0).getStatistics().getLfsObjectSize());
+        assertNotNull(projects.get(0).getStatistics().getCommitCount());
+        assertNotNull(projects.get(0).getStatistics().getJobArtifactsSize());
+        assertNotNull(projects.get(0).getStatistics().getStorageSize());
+
+    }
+
     @Test
     public void testListProjectsWithParamsViaPager() throws GitLabApiException {
 
@@ -333,7 +351,21 @@ public class TestProjectApi {
     @Test
     public void testListStarredProjects() throws GitLabApiException {
 
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        try {
+            gitLabApi.getProjectApi().starProject(project);
+        } catch (Exception ignore) {
+        }
+
         List<Project> projects = gitLabApi.getProjectApi().getStarredProjects();
+
+        try {
+            gitLabApi.getProjectApi().unstarProject(project);
+        } catch (Exception ignore) {
+        }
+
         assertNotNull(projects);
         assertNotNull(projects);
         assertEquals(1, projects.size());
@@ -343,8 +375,22 @@ public class TestProjectApi {
     @Test
     public void testListStarredProjectsWithParams() throws GitLabApiException {
 
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        try {
+            gitLabApi.getProjectApi().starProject(project);
+        } catch (Exception ignore) {
+        }
+
         List<Project> projects = gitLabApi.getProjectApi().getProjects(false, Visibility.PUBLIC,
                 Constants.ProjectOrderBy.NAME, Constants.SortOrder.DESC, TEST_PROJECT_NAME, true, true, true, true, true);
+
+        try {
+            gitLabApi.getProjectApi().unstarProject(project);
+        } catch (Exception ignore) {
+        }
+
         assertNotNull(projects);
         assertEquals(1, projects.size());
         assertEquals(TEST_PROJECT_NAME, projects.get(0).getName());
@@ -417,6 +463,18 @@ public class TestProjectApi {
     }
 
     @Test
+    public void testProjectLanguages() throws GitLabApiException {
+
+        assumeTrue(TEST_GROUP != null && TEST_GROUP_PROJECT != null);
+        assumeTrue(TEST_GROUP.trim().length() > 0 && TEST_GROUP_PROJECT.trim().length() > 0);
+
+        Project project = gitLabApi.getProjectApi().getProject(TEST_GROUP, TEST_GROUP_PROJECT);
+        assertNotNull(project);
+        Map<String, Float> projectLanguages = gitLabApi.getProjectApi().getProjectLanguages(project.getId());
+        assertNotNull(projectLanguages);
+    }
+
+    @Test
     public void testForkProject() throws GitLabApiException {
 
         assumeTrue(TEST_GROUP != null && TEST_GROUP_PROJECT != null);
@@ -477,5 +535,25 @@ public class TestProjectApi {
         assertNotNull(optional);
         assertFalse(optional.isPresent());
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), GitLabApi.getOptionalException(optional).getHttpStatus());
+    }
+
+    @Test
+    public void testStarAndUnstarProject() throws GitLabApiException {
+
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        try {
+            gitLabApi.getProjectApi().unstarProject(project);
+        } catch (Exception ignore) {
+        }
+
+        Project starredProject = gitLabApi.getProjectApi().starProject(project);
+        assertNotNull(starredProject);
+        assertEquals(1, (int)starredProject.getStarCount());
+
+        Project unstarredProject = gitLabApi.getProjectApi().unstarProject(project);
+        assertNotNull(unstarredProject);
+        assertEquals(0, (int)unstarredProject.getStarCount());
     }
 }

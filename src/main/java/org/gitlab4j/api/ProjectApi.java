@@ -28,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.ws.rs.core.Form;
@@ -478,6 +479,22 @@ public class ProjectApi extends AbstractApi implements Constants {
     }
 
     /**
+     * Get a specific project, which is owned by the authentication user.
+     *
+     * GET /projects/:id
+     *
+     * @param projectId the ID of the project to get
+     * @param statistics include project statistics
+     * @return the specified project
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Project getProject(Integer projectId, Boolean statistics) throws GitLabApiException {
+        Form formData = new GitLabApiForm().withParam("statistics", statistics);
+        Response response = get(Response.Status.OK, formData.asMap(), "projects", projectId);
+        return (response.readEntity(Project.class));
+    }
+
+    /**
      * Get an Optional instance with the value for the specific project, which is owned by the authentication user.
      *
      * GET /projects/:id
@@ -521,6 +538,39 @@ public class ProjectApi extends AbstractApi implements Constants {
         }
 
         Response response = get(Response.Status.OK, null, "projects", projectPath);
+        return (response.readEntity(Project.class));
+    }
+
+    /**
+     * Get a specific project, which is owned by the authentication user.
+     *
+     * GET /projects/:id
+     *
+     * @param namespace the name of the project namespace or group
+     * @param project the name of the project to get
+     * @param statistics include project statistics
+     * @return the specified project
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Project getProject(String namespace, String project, Boolean statistics) throws GitLabApiException {
+
+        if (namespace == null) {
+            throw new RuntimeException("namespace cannot be null");
+        }
+
+        if (project == null) {
+            throw new RuntimeException("project cannot be null");
+        }
+
+        String projectPath = null;
+        try {
+            projectPath = URLEncoder.encode(namespace + "/" + project, "UTF-8");
+        } catch (UnsupportedEncodingException uee) {
+            throw (new GitLabApiException(uee));
+        }
+
+        Form formData = new GitLabApiForm().withParam("statistics", statistics);
+        Response response = get(Response.Status.OK, formData.asMap(), "projects", projectPath);
         return (response.readEntity(Project.class));
     }
 
@@ -2033,7 +2083,7 @@ public class ProjectApi extends AbstractApi implements Constants {
             .withParam("file_name_regex", pushRule.getFileNameRegex())
             .withParam("max_file_size", pushRule.getMaxFileSize());
 
-        Response response = post(Response.Status.OK, formData, "projects", projectId, "push_rule");
+        final Response response = putWithFormData(Response.Status.OK, formData, "projects", projectId, "push_rule");
         return (response.readEntity(PushRules.class));
     }
 
@@ -2096,5 +2146,55 @@ public class ProjectApi extends AbstractApi implements Constants {
      */
     public Pager<Project> getForks(Integer projectId, int itemsPerPage) throws GitLabApiException {
         return new Pager<Project>(this, Project.class, itemsPerPage, null, "projects", projectId, "forks");
+    }
+
+    /**
+     * Star a project.
+     *
+     * POST /projects/:id/star
+     *
+     * @param projectIdOrPath id, path of the project, or a Project instance holding the project ID or path
+     * @return a Project instance with the new project info
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Project starProject(Object projectIdOrPath) throws GitLabApiException {
+        Response.Status expectedStatus = (isApiVersion(ApiVersion.V3) ? Response.Status.OK : Response.Status.CREATED);
+        Response response = post(expectedStatus, (Form) null, "projects", getProjectIdOrPath(projectIdOrPath), "star");
+        return (response.readEntity(Project.class));
+    }
+
+    /**
+     * Unstar a project.
+     *
+     * POST /projects/:id/unstar
+     *
+     * @param projectIdOrPath id, path of the project, or a Project instance holding the project ID or path
+     * @return a Project instance with the new project info
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Project unstarProject(Object projectIdOrPath) throws GitLabApiException {
+        Response.Status expectedStatus = (isApiVersion(ApiVersion.V3) ? Response.Status.OK : Response.Status.CREATED);
+        Response response = post(expectedStatus, (Form) null, "projects", getProjectIdOrPath(projectIdOrPath), "unstar");
+        return (response.readEntity(Project.class));
+    }
+
+    /**
+     * Get languages used in a project with percentage value.
+     *
+     * Get /projects/:id/languages
+     *
+     * @param projectId the ID of the project
+     * @return a Map instance with the language as the key and the percentage as the value
+     * @throws GitLabApiException if any exception occurs
+     * @since GitLab 10.8
+     */
+    public Map<String, Float> getProjectLanguages(Integer projectId) throws GitLabApiException {
+
+        if (projectId == null) {
+            throw new RuntimeException("projectId cannot be null");
+        }
+
+        Response response = get(Response.Status.OK, null, "projects", projectId, "languages");
+        return (response.readEntity(new GenericType<Map<String, Float>>() {}));
     }
 }

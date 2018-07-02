@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.models.Event;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.utils.ISO8601;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -92,12 +94,11 @@ public class TestEventsApi {
         assumeTrue(gitLabApi != null);
     }
 
-//  This is commented out because it was causing a "Too Many Requests" error from gitlab.com, thus causing the tests to fail
-//    @Test
-//    public void testGetAuthenticatedUserEvents() throws GitLabApiException {
-//        List<Event> events = gitLabApi.getEventsApi().getAuthenticatedUserEvents(null, null, null, null, null);
-//        assertNotNull(events);
-//    }
+    @Test
+    public void testGetAuthenticatedUserEvents() throws GitLabApiException {
+        List<Event> events = gitLabApi.getEventsApi().getAuthenticatedUserEvents(null, null, null, null, null);
+        assertNotNull(events);
+    }
 
     @Test
     public void testGetAuthenticatedUserEventsWithDates() throws GitLabApiException {
@@ -119,6 +120,15 @@ public class TestEventsApi {
     }
 
     @Test
+    public void testGetUserEventsWithAllParams() throws GitLabApiException, ParseException {
+        assertNotNull(testUser);
+        Date before = ISO8601.toDate("2017-06-02");
+        Date after = new Date();
+        List<Event> events = gitLabApi.getEventsApi().getUserEvents(testUser.getId(), Constants.ActionType.CREATED, Constants.TargetType.PROJECT, before, after, Constants.SortOrder.DESC);
+        assertNotNull(events);
+    }
+
+    @Test
     public void testGetProjectEvents() throws GitLabApiException {
         assertNotNull(testProject);
         List<Event> events = gitLabApi.getEventsApi().getProjectEvents(testProject.getId(), null, null, null, null, null);
@@ -131,13 +141,12 @@ public class TestEventsApi {
         assertNotNull(events);
     }
 
-//  This is commented out because it was causing a "Too Many Requests" error from gitlab.com, thus causing the tests to fail
-//    @Test
-//    public void testPagedGetUserEvents() throws GitLabApiException {
-//        assertNotNull(testUser);
-//        Pager<Event> events = gitLabApi.getEventsApi().getUserEvents(testUser.getId(), null, null, null, null, null, 10);
-//        assertNotNull(events);
-//    }
+    @Test
+    public void testPagedGetUserEvents() throws GitLabApiException {
+        assertNotNull(testUser);
+        Pager<Event> events = gitLabApi.getEventsApi().getUserEvents(testUser.getId(), null, null, null, null, null, 10);
+        assertNotNull(events);
+    }
 
     @Test
     public void testPagedGetProjectEvents() throws GitLabApiException {
