@@ -1,10 +1,9 @@
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import java.util.Map;
 
-@XmlAccessorType(XmlAccessType.FIELD)
+import org.gitlab4j.api.utils.JacksonJson;
+
 public class HealthCheckItem {
     private HealthCheckStatus status;
     private Map<String, String> labels;
@@ -32,5 +31,10 @@ public class HealthCheckItem {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

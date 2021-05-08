@@ -10,6 +10,7 @@ import org.gitlab4j.api.models.Version;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * In order for these tests to run you must set the following properties in test-gitlab4j.properties
@@ -20,15 +21,12 @@ import org.junit.Test;
  * If any of the above are NULL, all tests in this class will be skipped.
  *
  */
-public class TestIgnoreCertificateErrors {
+@Category(IntegrationTest.class)
+public class TestIgnoreCertificateErrors implements PropertyConstants {
 
     // The following needs to be set to your test repository
-    private static final String TEST_HOST_URL;
-    private static final String TEST_PRIVATE_TOKEN;
-    static {
-        TEST_HOST_URL = TestUtils.getProperty("TEST_HOST_URL");
-        TEST_PRIVATE_TOKEN = TestUtils.getProperty("TEST_PRIVATE_TOKEN");
-    }
+    private static final String TEST_HOST_URL = HelperUtils.getProperty(HOST_URL_KEY);
+    private static final String TEST_PRIVATE_TOKEN = HelperUtils.getProperty(PRIVATE_TOKEN_KEY);
 
     private static boolean setupOk;
 
@@ -87,6 +85,7 @@ public class TestIgnoreCertificateErrors {
         System.out.format("ignoreCertErrors: %b, version=%s, revision=%s%n", gitLabApi.getIgnoreCertificateErrors(), version.getVersion(), version.getRevision());
         assertNotNull(version.getVersion());
         assertNotNull(version.getRevision());
+        gitLabApi.close();
 
         gitLabApi = new GitLabApi(ApiVersion.V4, TEST_HOST_URL, TEST_PRIVATE_TOKEN);
         gitLabApi.setIgnoreCertificateErrors(true);
@@ -104,5 +103,7 @@ public class TestIgnoreCertificateErrors {
         System.out.format("ignoreCertErrors: %b, version=%s, revision=%s%n", gitLabApi.getIgnoreCertificateErrors(), version.getVersion(), version.getRevision());
         assertNotNull(version.getVersion());
         assertNotNull(version.getRevision());
+
+        gitLabApi.close();
     }
 }

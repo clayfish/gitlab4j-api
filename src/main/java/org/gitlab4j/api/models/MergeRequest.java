@@ -3,33 +3,43 @@ package org.gitlab4j.api.models;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.gitlab4j.api.utils.JacksonJson;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class MergeRequest {
 
+    private Boolean allowCollaboration;
+    private Boolean allowMaintainerToPush;
     private Integer approvalsBeforeMerge;
     private Assignee assignee;
+    private List<Assignee> assignees;
+    private List<Reviewer> reviewers;
     private Author author;
+    private Boolean blockingDiscussionsResolved;
     private List<Diff> changes;
+    private Date closedAt;
+    private Participant closedBy;
     private Date createdAt;
     private String description;
+    private Boolean discussionLocked;
+    private Integer divergedCommitsCount;
     private Integer downvotes;
     private Boolean forceRemoveSourceBranch;
+    private Boolean hasConflicts;
     private Integer id;
     private Integer iid;
     private List<String> labels;
+    private Date latestBuildFinishedAt;
+    private Date latestBuildStartedAt;
     private String mergeCommitSha;
+    private String squashCommitSha;
     private String mergeStatus;
-    private Boolean mergeWhenBuildSucceeds;
+    private Date mergedAt;
+    private Participant mergedBy;
+    private Boolean mergeWhenPipelineSucceeds;
+    private String mergeError;
     private Milestone milestone;
     private Integer projectId;
     private String sha;
@@ -41,20 +51,41 @@ public class MergeRequest {
     private Boolean subscribed;
     private String targetBranch;
     private Integer targetProjectId;
+    private TaskCompletionStatus taskCompletionStatus;
+    private References references;
+    private TimeStats timeStats;
     private String title;
     private Date updatedAt;
     private Integer upvotes;
     private Integer userNotesCount;
     private String webUrl;
     private Boolean workInProgress;
+    private DiffRef diffRefs;
+    private Boolean rebaseInProgress;
 
     // The approval fields will only be available when listing approvals, approving  or unapproving a merge reuest.
     private Integer approvalsRequired;
-    private Integer approvalsMissing;
+    private Integer approvalsLeft;
 
     @JsonSerialize(using = JacksonJson.UserListSerializer.class)
     @JsonDeserialize(using = JacksonJson.UserListDeserializer.class)
     private List<User> approvedBy;
+
+    public Boolean getAllowCollaboration() {
+        return allowCollaboration;
+    }
+
+    public void setAllowCollaboration(Boolean allowCollaboration) {
+        this.allowCollaboration = allowCollaboration;
+    }
+
+    public Boolean getAllowMaintainerToPush() {
+        return allowMaintainerToPush;
+    }
+
+    public void setAllowMaintainerToPush(Boolean allowMaintainerToPush) {
+        this.allowMaintainerToPush = allowMaintainerToPush;
+    }
 
     public Integer getApprovalsBeforeMerge() {
         return approvalsBeforeMerge;
@@ -72,6 +103,14 @@ public class MergeRequest {
         this.assignee = assignee;
     }
 
+    public List<Assignee> getAssignees() {
+        return assignees;
+    }
+
+    public void setAssignees(List<Assignee> assignees) {
+        this.assignees = assignees;
+    }
+
     public Author getAuthor() {
         return author;
     }
@@ -80,12 +119,36 @@ public class MergeRequest {
         this.author = author;
     }
 
+    public Boolean getBlockingDiscussionsResolved() {
+        return blockingDiscussionsResolved;
+    }
+
+    public void setBlockingDiscussionsResolved(Boolean blockingDiscussionsResolved) {
+        this.blockingDiscussionsResolved = blockingDiscussionsResolved;
+    }
+
     public List<Diff> getChanges() {
         return changes;
     }
 
     public void setChanges(List<Diff> changes) {
         this.changes = changes;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
+    }
+
+    public Participant getClosedBy() {
+        return closedBy;
+    }
+
+    public void setClosedBy(Participant closedBy) {
+        this.closedBy = closedBy;
     }
 
     public Date getCreatedAt() {
@@ -104,6 +167,22 @@ public class MergeRequest {
         this.description = description;
     }
 
+    public Boolean getDiscussionLocked() {
+        return discussionLocked;
+    }
+
+    public void setDiscussionLocked(Boolean discussionLocked) {
+        this.discussionLocked = discussionLocked;
+    }
+
+    public Integer getDivergedCommitsCount() {
+        return divergedCommitsCount;
+    }
+
+    public void setDivergedCommitsCount(Integer divergedCommitsCount) {
+        this.divergedCommitsCount = divergedCommitsCount;
+    }
+
     public Integer getDownvotes() {
         return downvotes;
     }
@@ -118,6 +197,14 @@ public class MergeRequest {
 
     public void setForceRemoveSourceBranch(Boolean forceRemoveSourceBranch) {
         this.forceRemoveSourceBranch = forceRemoveSourceBranch;
+    }
+
+    public Boolean getHasConflicts() {
+        return hasConflicts;
+    }
+
+    public void setHasConflicts(Boolean hasConflicts) {
+        this.hasConflicts = hasConflicts;
     }
 
     public Integer getId() {
@@ -144,12 +231,36 @@ public class MergeRequest {
         this.labels = labels;
     }
 
+    public Date getLatestBuildFinishedAt() {
+        return latestBuildFinishedAt;
+    }
+
+    public void setLatestBuildFinishedAt(Date latestBuildFinishedAt) {
+        this.latestBuildFinishedAt = latestBuildFinishedAt;
+    }
+
+    public Date getLatestBuildStartedAt() {
+        return latestBuildStartedAt;
+    }
+
+    public void setLatestBuildStartedAt(Date latestBuildStartedAt) {
+        this.latestBuildStartedAt = latestBuildStartedAt;
+    }
+
     public String getMergeCommitSha() {
         return mergeCommitSha;
     }
 
     public void setMergeCommitSha(String mergeCommitSha) {
         this.mergeCommitSha = mergeCommitSha;
+    }
+
+    public String getSquashCommitSha() {
+        return squashCommitSha;
+    }
+
+    public void setSquashCommitSha(String squashCommitSha) {
+        this.squashCommitSha = squashCommitSha;
     }
 
     public String getMergeStatus() {
@@ -160,12 +271,36 @@ public class MergeRequest {
         this.mergeStatus = mergeStatus;
     }
 
-    public Boolean getMergeWhenBuildSucceeds() {
-        return mergeWhenBuildSucceeds;
+    public Date getMergedAt() {
+        return mergedAt;
     }
 
-    public void setMergeWhenBuildSucceeds(Boolean mergeWhenBuildSucceeds) {
-        this.mergeWhenBuildSucceeds = mergeWhenBuildSucceeds;
+    public void setMergedAt(Date mergedAt) {
+        this.mergedAt = mergedAt;
+    }
+
+    public Participant getMergedBy() {
+        return mergedBy;
+    }
+
+    public void setMergedBy(Participant mergedBy) {
+        this.mergedBy = mergedBy;
+    }
+
+    public Boolean getMergeWhenPipelineSucceeds() {
+        return mergeWhenPipelineSucceeds;
+    }
+
+    public void setMergeWhenPipelineSucceeds(Boolean mergeWhenPipelineSucceeds) {
+        this.mergeWhenPipelineSucceeds = mergeWhenPipelineSucceeds;
+    }
+
+    public String getMergeError() {
+        return mergeError;
+    }
+
+    public void setMergeError(String mergeError) {
+        this.mergeError = mergeError;
     }
 
     public Milestone getMilestone() {
@@ -256,6 +391,30 @@ public class MergeRequest {
         this.targetProjectId = targetProjectId;
     }
 
+    public TaskCompletionStatus getTaskCompletionStatus() {
+        return taskCompletionStatus;
+    }
+
+    public void setTaskCompletionStatus(TaskCompletionStatus taskCompletionStatus) {
+        this.taskCompletionStatus = taskCompletionStatus;
+    }
+
+    public References getReferences() {
+        return references;
+    }
+
+    public void setReferences(References references) {
+        this.references = references;
+    }
+
+    public TimeStats getTimeStats() {
+        return timeStats;
+    }
+
+    public void setTimeStats(TimeStats timeStats) {
+        this.timeStats = timeStats;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -327,14 +486,14 @@ public class MergeRequest {
     }
 
     /**
-     * Get the number of approvals missing for the merge request.
+     * Get the number of approvals left for the merge request.
      *
      * NOTE: This property will only be used when listing, approiving, or unapproving a merge request.
      *
-     * @return the number of approvals missing for the merge request
+     * @return the number of approvals left for the merge request
      */
-    public Integer getApprovalsMissing() {
-        return approvalsMissing;
+    public Integer getApprovalsLeft() {
+        return approvalsLeft;
     }
 
     /**
@@ -342,10 +501,10 @@ public class MergeRequest {
      *
      * NOTE: This property will only be used when listing, approiving, or unapproving a merge request.
      *
-     * @param approvalsMissing the number of approvals missing for the merge request
+     * @param approvalsLeft the number of approvals missing for the merge request
      */
-    public void setApprovalsMissing(Integer approvalsMissing) {
-        this.approvalsMissing = approvalsMissing;
+    public void setApprovalsLeft(Integer approvalsLeft) {
+        this.approvalsLeft = approvalsLeft;
     }
 
     /**
@@ -370,7 +529,36 @@ public class MergeRequest {
         this.approvedBy = approvedBy;
     }
 
+    public DiffRef getDiffRefs() {
+        return diffRefs;
+    }
+
+    public void setDiffRefs(final DiffRef diffRefs) {
+        this.diffRefs = diffRefs;
+    }
+
+    public Boolean getRebaseInProgress() {
+        return rebaseInProgress;
+    }
+
+    public void setRebaseInProgress(Boolean rebaseInProgress) {
+        this.rebaseInProgress = rebaseInProgress;
+    }
+
     public static final boolean isValid(MergeRequest mergeRequest) {
         return (mergeRequest != null && mergeRequest.getId() != null);
+    }
+
+    public List<Reviewer> getReviewers() {
+        return reviewers;
+    }
+
+    public void setReviewers(List<Reviewer> reviewers) {
+        this.reviewers = reviewers;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

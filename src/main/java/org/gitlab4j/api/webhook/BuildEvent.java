@@ -2,17 +2,15 @@ package org.gitlab4j.api.webhook;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-
 import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
-public class BuildEvent implements Event {
+/**
+ * The documentation at: <a href="https://docs.gitlab.com/ee/user/project/integrations/webhooks.html#job-events">
+ * Job Events</a> is incorrect, this class represents the actual content of the Job Hook event.
+ */
+public class BuildEvent extends AbstractEvent {
 
-    /** X-Gitlab-Event header value pre GitLab v9.3.0 */
-    public static final String BUILD_HOOK_X_GITLAB_EVENT = "Build Hook";
-    /** X-Gitlab-Event header value post GitLab v9.3.0 */
     public static final String JOB_HOOK_X_GITLAB_EVENT = "Job Hook";
     public static final String OBJECT_KIND = "build";
 
@@ -26,12 +24,13 @@ public class BuildEvent implements Event {
     private String buildStatus;
     private Date buildStarted_at;
     private Date buildFinished_at;
-    private Integer buildDuration;
+    private Float buildDuration;
     private Boolean buildAllowFailure;
+    private String buildFailureReason;
     private Integer projectId;
     private String projectName;
     private User user;
-    private BuildEventCommit commit;
+    private BuildCommit commit;
     private EventRepository repository;
 
     public String getObjectKind() {
@@ -123,11 +122,11 @@ public class BuildEvent implements Event {
         this.buildFinished_at = buildFinished_at;
     }
 
-    public Integer getBuildDuration() {
+    public Float getBuildDuration() {
         return buildDuration;
     }
 
-    public void setBuildDuration(Integer buildDuration) {
+    public void setBuildDuration(Float buildDuration) {
         this.buildDuration = buildDuration;
     }
 
@@ -137,6 +136,14 @@ public class BuildEvent implements Event {
 
     public void setBuildAllowFailure(Boolean buildAllowFailure) {
         this.buildAllowFailure = buildAllowFailure;
+    }
+
+    public String getBuildFailureReason() {
+        return buildFailureReason;
+    }
+
+    public void setBuildFailureReason(String buildFailureReason) {
+        this.buildFailureReason = buildFailureReason;
     }
 
     public Integer getProjectId() {
@@ -163,11 +170,11 @@ public class BuildEvent implements Event {
         this.user = user;
     }
 
-    public BuildEventCommit getCommit() {
+    public BuildCommit getCommit() {
         return commit;
     }
 
-    public void setCommit(BuildEventCommit commit) {
+    public void setCommit(BuildCommit commit) {
         this.commit = commit;
     }
 
@@ -177,5 +184,10 @@ public class BuildEvent implements Event {
 
     public void setRepository(EventRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

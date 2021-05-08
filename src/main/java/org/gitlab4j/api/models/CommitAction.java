@@ -1,5 +1,12 @@
 package org.gitlab4j.api.models;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.gitlab4j.api.Constants.Encoding;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.utils.FileUtils;
+import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.utils.JacksonJsonEnumHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -9,34 +16,12 @@ public class CommitAction {
 
     public enum Action {
 
-        CREATE, DELETE, MOVE, UPDATE;
+        CREATE, DELETE, MOVE, UPDATE, CHMOD;
 
         private static JacksonJsonEnumHelper<Action> enumHelper = new JacksonJsonEnumHelper<>(Action.class);
 
         @JsonCreator
         public static Action forValue(String value) {
-            return enumHelper.forValue(value);
-        }
-
-        @JsonValue
-        public String toValue() {
-            return (enumHelper.toString(this));
-        }
-
-        @Override
-        public String toString() {
-            return (enumHelper.toString(this));
-        }
-    }
-
-    public enum Encoding {
-
-        BASE64, TEXT;
-
-        private static JacksonJsonEnumHelper<Encoding> enumHelper = new JacksonJsonEnumHelper<>(Encoding.class);
-
-        @JsonCreator
-        public static Encoding forValue(String value) {
             return enumHelper.forValue(value);
         }
 
@@ -57,6 +42,7 @@ public class CommitAction {
     private String content;
     private Encoding encoding;
     private String lastCommitId;
+    private Boolean executeFilemode;
 
     public Action getAction() {
         return action;
@@ -134,5 +120,42 @@ public class CommitAction {
     public CommitAction withLastCommitId(String lastCommitId) {
         this.lastCommitId = lastCommitId;
         return this;
+    }
+
+    public Boolean getExecuteFilemode() {
+        return executeFilemode;
+    }
+
+    public void setExecuteFilemode(Boolean executeFilemode) {
+        this.executeFilemode = executeFilemode;
+    }
+
+    public CommitAction withExecuteFilemode(Boolean executeFilemode) {
+        this.executeFilemode = executeFilemode;
+        return this;
+    }
+
+    public CommitAction withFileContent(String filePath, Encoding encoding) throws GitLabApiException {
+        File file = new File(filePath);
+        return (withFileContent(file, filePath, encoding));
+    }
+
+    public CommitAction withFileContent(File file, String filePath, Encoding encoding) throws GitLabApiException {
+
+        this.encoding = (encoding != null ? encoding : Encoding.TEXT); 
+        this.filePath = filePath;
+
+        try {
+            content = FileUtils.getFileContentAsString(file, this.encoding);
+        } catch (IOException e) {
+            throw new GitLabApiException(e);
+        }
+
+        return (this);
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

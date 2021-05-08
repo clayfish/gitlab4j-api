@@ -1,11 +1,7 @@
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class TreeItem {
 
     public enum Type {
@@ -60,5 +56,10 @@ public class TreeItem {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

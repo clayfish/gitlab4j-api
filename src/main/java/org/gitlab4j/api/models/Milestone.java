@@ -2,20 +2,18 @@ package org.gitlab4j.api.models;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Milestone {
 
     private Date createdAt;
     private String description;
+    private Date startDate;
     private Date dueDate;
     private Integer id;
     private Integer iid;
     private Integer projectId;
+    private Integer groupId;
     private String state;
     private String title;
     private Date updatedAt;
@@ -34,6 +32,14 @@ public class Milestone {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     public Date getDueDate() {
@@ -68,6 +74,14 @@ public class Milestone {
         this.projectId = projectId;
     }
 
+    public Integer getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(Integer groupId) {
+        this.groupId = groupId;
+    }
+
     public String getState() {
         return this.state;
     }
@@ -90,5 +104,10 @@ public class Milestone {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

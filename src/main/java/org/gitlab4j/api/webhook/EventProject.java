@@ -1,13 +1,11 @@
 package org.gitlab4j.api.webhook;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-
 import org.gitlab4j.api.models.AccessLevel;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class EventProject {
 
+    private Integer id;
     private String name;
     private String description;
     private String webUrl;
@@ -18,10 +16,19 @@ public class EventProject {
     private AccessLevel visibilityLevel;
     private String pathWithNamespace;
     private String defaultBranch;
+    private String ciConfigPath;
     private String homepage;
     private String url;
     private String sshUrl;
     private String httpUrl;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -103,6 +110,14 @@ public class EventProject {
         this.defaultBranch = defaultBranch;
     }
 
+    public String getCiConfigPath() {
+        return ciConfigPath;
+    }
+
+    public void setCiConfigPath(String ciConfigPath) {
+        this.ciConfigPath = ciConfigPath;
+    }
+
     public String getHomepage() {
         return homepage;
     }
@@ -135,4 +150,8 @@ public class EventProject {
         this.httpUrl = httpUrl;
     }
 
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
+    }
 }

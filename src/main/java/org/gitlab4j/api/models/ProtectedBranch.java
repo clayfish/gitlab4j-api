@@ -1,18 +1,17 @@
 
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+import org.gitlab4j.api.utils.JacksonJson;
+
 public class ProtectedBranch {
 
     private String name;
     private List<BranchAccessLevel> pushAccessLevels;
     private List<BranchAccessLevel> mergeAccessLevels;
+    private List<BranchAccessLevel> unprotectAccessLevels;
+    private Boolean codeOwnerApprovalRequired;
 
     public String getName() {
         return this.name;
@@ -38,7 +37,48 @@ public class ProtectedBranch {
         this.mergeAccessLevels = mergeAccessLevels;
     }
 
+    public List<BranchAccessLevel> getUnprotectAccessLevels() {
+        return unprotectAccessLevels;
+    }
+
+    public void setUnprotectAccessLevels(List<BranchAccessLevel> unprotectAccessLevels) {
+        this.unprotectAccessLevels = unprotectAccessLevels;
+    }
+
     public static final boolean isValid(ProtectedBranch branch) {
         return (branch != null && branch.getName() != null);
+    }
+
+    public ProtectedBranch withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public ProtectedBranch withPushAccessLevels(List<BranchAccessLevel> pushAccessLevels) {
+        this.pushAccessLevels = pushAccessLevels;
+        return this;
+    }
+
+    public ProtectedBranch withMergeAccessLevels(List<BranchAccessLevel> mergeAccessLevels) {
+        this.mergeAccessLevels = mergeAccessLevels;
+        return this;
+    }
+
+    public Boolean getCodeOwnerApprovalRequired() {
+        return codeOwnerApprovalRequired;
+    }
+
+    public void setCodeOwnerApprovalRequired(Boolean codeOwnerApprovalRequired) {
+        this.codeOwnerApprovalRequired = codeOwnerApprovalRequired;
+    }
+
+    public ProtectedBranch withCodeOwnerApprovalRequired(Boolean codeOwnerApprovalRequired) {
+        this.codeOwnerApprovalRequired = codeOwnerApprovalRequired;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

@@ -3,18 +3,19 @@ package org.gitlab4j.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeNotNull;
 
 import java.util.List;
 
-import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.models.Branch;
+import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runners.MethodSorters;
 
 /**
@@ -29,21 +30,9 @@ import org.junit.runners.MethodSorters;
  *
  * NOTE: &amp;FixMethodOrder(MethodSorters.NAME_ASCENDING) is very important to insure that the tests are in the correct order
  */
+@Category(IntegrationTest.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPager {
-
-    // The following needs to be set to your test repository
-
-    private static final String TEST_NAMESPACE;
-    private static final String TEST_PROJECT_NAME;
-    private static final String TEST_HOST_URL;
-    private static final String TEST_PRIVATE_TOKEN;
-    static {
-        TEST_NAMESPACE = TestUtils.getProperty("TEST_NAMESPACE");
-        TEST_PROJECT_NAME = TestUtils.getProperty("TEST_PROJECT_NAME");
-        TEST_HOST_URL = TestUtils.getProperty("TEST_HOST_URL");
-        TEST_PRIVATE_TOKEN = TestUtils.getProperty("TEST_PRIVATE_TOKEN");
-    }
+public class TestPager extends AbstractIntegrationTest {
 
     private static GitLabApi gitLabApi;
 
@@ -53,34 +42,13 @@ public class TestPager {
 
     @BeforeClass
     public static void setup() {
-
-        String problems = "";
-        if (TEST_NAMESPACE == null || TEST_NAMESPACE.trim().isEmpty()) {
-            problems += "TEST_NAMESPACE cannot be empty\n";
-        }
-
-        if (TEST_PROJECT_NAME == null || TEST_PROJECT_NAME.trim().isEmpty()) {
-            problems += "TEST_PROJECT_NAME cannot be empty\n";
-        }
-
-        if (TEST_HOST_URL == null || TEST_HOST_URL.trim().isEmpty()) {
-            problems += "TEST_HOST_URL cannot be empty\n";
-        }
-
-        if (TEST_PRIVATE_TOKEN == null || TEST_PRIVATE_TOKEN.trim().isEmpty()) {
-            problems += "TEST_PRIVATE_TOKEN cannot be empty\n";
-        }
-
-        if (problems.isEmpty()) {
-            gitLabApi = new GitLabApi(ApiVersion.V4, TEST_HOST_URL, TEST_PRIVATE_TOKEN);
-        } else {
-            System.err.print(problems);
-        }
+        // Must setup the connection to the GitLab test server
+        gitLabApi = baseTestSetup();
     }
 
     @Before
     public void beforeMethod() {
-        assumeTrue(gitLabApi != null);
+        assumeNotNull(gitLabApi);
     }
 
     @Test
@@ -199,5 +167,44 @@ public class TestPager {
                 System.out.format("page=%d, item=%d, name=%s, username=%s%n", pageIndex, itemNumber, member.getName(), member.getUsername());
             }
         }
+    }
+
+    @Test
+    public void testAll() throws GitLabApiException {
+
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        Pager<Commit> pager = gitLabApi.getCommitsApi().getCommits(project, 1);
+        assertNotNull(pager);
+        assertEquals(1, pager.getItemsPerPage());
+        assertTrue(0 < pager.getTotalPages());
+
+        int numCommits = pager.getTotalItems();
+        assertTrue(0 < numCommits);
+
+        List<Commit> allCommits = pager.all();
+        System.out.println("All commits:");
+        allCommits.stream().map(Commit::getId).forEach(System.out::println);
+
+        assertEquals(numCommits, allCommits.size());
+    }
+
+    @Test
+    public void testStream() throws GitLabApiException {
+
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        Pager<Commit> pager = gitLabApi.getCommitsApi().getCommits(project, 1);
+        assertNotNull(pager);
+        assertEquals(1, pager.getItemsPerPage());
+        assertTrue(0 < pager.getTotalPages());
+
+        int numCommits = pager.getTotalItems();
+        assertTrue(0 < numCommits);
+
+        System.out.println("Streamed commits:");
+       assertEquals(numCommits, pager.stream().map(Commit::getId).peek(System.out::println).count());
     }
 }

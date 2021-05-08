@@ -3,14 +3,8 @@ package org.gitlab4j.api.models;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class ProjectHook {
 
     private Boolean buildEvents;
@@ -29,7 +23,11 @@ public class ProjectHook {
     private Boolean wikiPageEvents;
     private String token;
 
-    
+    private Boolean repositoryUpdateEvents;
+    private Boolean confidentialIssuesEvents;
+    private Boolean confidentialNoteEvents;
+    private String pushEventsBranchFilter;
+
     public Boolean getBuildEvents() {
         return buildEvents;
     }
@@ -150,123 +148,100 @@ public class ProjectHook {
         this.wikiPageEvents = wikiPageEvents;
     }
 
-    /**
-     * @return the do build events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #getBuildEvents()}
-     */
-    @Deprecated
-    @JsonIgnore
-    public Boolean getBuild_events() {
-        return buildEvents;
+    public Boolean getRepositoryUpdateEvents() {
+        return repositoryUpdateEvents;
     }
 
-    /**
-     * @param buildEvents the do build events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #setBuildEvents(Boolean)}
-     */
-    @Deprecated
-    @JsonIgnore
-    public void setBuild_events(Boolean buildEvents) {
-        this.buildEvents = buildEvents;
+    public void setRepositoryUpdateEvents(Boolean repositoryUpdateEvents) {
+        this.repositoryUpdateEvents = repositoryUpdateEvents;
     }
 
-    /**
-     * @return the enable SSL verification flag
-     * @deprecated As of release 4.1.0, replaced by {@link #getEnableSslVerification()}
-     */
-    @Deprecated
-    @JsonIgnore
-    public Boolean getEnable_ssl_verification() {
-        return enableSslVerification;
+    public Boolean getConfidentialIssuesEvents() {
+        return confidentialIssuesEvents;
     }
 
-    /**
-     * @param enableSslVerification the enable SSL verification flag
-     * @deprecated As of release 4.1.0, replaced by {@link #setEnableSslVerification(Boolean)}
-     */
-    @Deprecated
-    @JsonIgnore
-    public void setEnable_ssl_verification(Boolean enableSslVerification) {
-        this.enableSslVerification = enableSslVerification;
+    public void setConfidentialIssuesEvents(Boolean confidentialIssuesEvents) {
+        this.confidentialIssuesEvents = confidentialIssuesEvents;
     }
 
-    /**
-     * @return the do note events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #getNoteEvents()}
-     */
-    @Deprecated
-    @JsonIgnore
-    public Boolean getNote_events() {
-        return noteEvents;
+    public Boolean getConfidentialNoteEvents() {
+        return confidentialNoteEvents;
     }
 
-    /**
-     * @param noteEvents the do note events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #setNoteEvents(Boolean)}
-     */
-    @Deprecated
-    @JsonIgnore
-    public void setNote_events(Boolean noteEvents) {
+    public void setConfidentialNoteEvents(Boolean confidentialNoteEvents) {
+        this.confidentialNoteEvents = confidentialNoteEvents;
+    }
+
+    public String getPushEventsBranchFilter() {
+        return pushEventsBranchFilter;
+    }
+
+    public void setPushEventsBranchFilter(String pushEventsBranchFilter) {
+        this.pushEventsBranchFilter = pushEventsBranchFilter;
+    }
+    
+    public ProjectHook withIssuesEvents(Boolean issuesEvents) {
+        this.issuesEvents = issuesEvents;
+        return (this);
+    }
+
+    public ProjectHook withMergeRequestsEvents(Boolean mergeRequestsEvents) {
+        this.mergeRequestsEvents = mergeRequestsEvents;
+        return (this);
+    }
+
+    public ProjectHook withNoteEvents(Boolean noteEvents) {
         this.noteEvents = noteEvents;
+        return (this);
+    }
+    
+    public ProjectHook withJobEvents(Boolean jobEvents) {
+        this.jobEvents = jobEvents;
+        return (this);
     }
 
-    /**
-     * @return the do pipeline events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #getPipelineEvents()}
-     */
-    @Deprecated
-    @JsonIgnore
-    public Boolean getPipeline_events() {
-        return pipelineEvents;
-    }
-
-    /**
-     * @param pipelineEvents the do pipeline events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #setPipelineEvents(Boolean)}
-     */
-    @Deprecated
-    @JsonIgnore
-    public void setPipeline_events(Boolean pipelineEvents) {
+    public ProjectHook withPipelineEvents(Boolean pipelineEvents) {
         this.pipelineEvents = pipelineEvents;
+        return (this);
     }
 
-    /**
-     * @return the do tag push events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #getTagPushEvents()}
-     */
-    @Deprecated
-    @JsonIgnore
-    public Boolean getTag_push_events() {
-        return tagPushEvents;
+    public ProjectHook withPushEvents(Boolean pushEvents) {
+        this.pushEvents = pushEvents;
+        return (this);
     }
 
-    /**
-     * @param tagPushEvents the do tag push events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #setTagPushEvents(Boolean)}
-     */
-    @Deprecated
-    @JsonIgnore
-    public void setTag_push_events(Boolean tagPushEvents) {
+    public ProjectHook withTagPushEvents(Boolean tagPushEvents) {
         this.tagPushEvents = tagPushEvents;
+        return (this);
     }
 
-    /**
-     * @return the do wiki page events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #getWikiPageEvents()}
-     */
-    @Deprecated
-    @JsonIgnore
-    public Boolean getWiki_page_events() {
-        return wikiPageEvents;
-    }
-
-    /**
-     * @param wikiPageEvents the do wiki page events flag
-     * @deprecated As of release 4.1.0, replaced by {@link #setWikiPageEvents(Boolean)}
-     */
-    @Deprecated
-    @JsonIgnore
-    public void setWiki_page_events(Boolean wikiPageEvents) {
+    public ProjectHook withWikiPageEvents(Boolean wikiPageEvents) {
         this.wikiPageEvents = wikiPageEvents;
+        return (this);
+    }
+
+    public ProjectHook withRepositoryUpdateEvents(Boolean repositoryUpdateEvents) {
+        this.repositoryUpdateEvents = repositoryUpdateEvents;
+        return (this);
+    }
+
+    public ProjectHook withConfidentialIssuesEvents(Boolean confidentialIssuesEvents) {
+        this.confidentialIssuesEvents = confidentialIssuesEvents;
+        return (this);
+    }
+
+    public ProjectHook withConfidentialNoteEvents(Boolean confidentialNoteEvents) {
+        this.confidentialNoteEvents = confidentialNoteEvents;
+        return (this);
+    }
+
+    public ProjectHook withPushEventsBranchFilter(String pushEventsBranchFilter) {
+        this.pushEventsBranchFilter = pushEventsBranchFilter;
+        return (this);
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

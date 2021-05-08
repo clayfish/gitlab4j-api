@@ -2,17 +2,13 @@ package org.gitlab4j.api.systemhooks;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class GroupMemberSystemHookEvent implements SystemHookEvent {
-    
+public class GroupMemberSystemHookEvent extends AbstractSystemHookEvent {
+
     public static final String NEW_GROUP_MEMBER_EVENT = "user_add_to_group";
     public static final String GROUP_MEMBER_REMOVED_EVENT = "user_remove_from_group";
-    
+
     private Date createdAt;
     private Date updatedAt;
     private String eventName;
@@ -111,5 +107,10 @@ public class GroupMemberSystemHookEvent implements SystemHookEvent {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

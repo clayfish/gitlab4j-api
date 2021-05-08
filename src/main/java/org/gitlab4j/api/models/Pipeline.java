@@ -1,13 +1,10 @@
 package org.gitlab4j.api.models;
 
 import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Pipeline {
 
     private Integer id;
@@ -19,12 +16,14 @@ public class Pipeline {
     private String yamlErrors;
     private User user;
     private Date createdAt;
-    private Date updated_at;
-    private Date started_at;
-    private Date finished_at;
-    private Date committed_at;
+    private Date updatedAt;
+    private Date startedAt;
+    private Date finishedAt;
+    private Date committedAt;
     private String coverage;
     private Integer duration;
+    private String webUrl;
+    private DetailedStatus detailedStatus;
 
     public Integer getId() {
         return id;
@@ -98,36 +97,116 @@ public class Pipeline {
         this.createdAt = createdAt;
     }
 
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updated_at) {
+        this.updatedAt = updated_at;
+    }
+
+    public Date getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(Date started_at) {
+        this.startedAt = started_at;
+    }
+
+    public Date getFinishedAt() {
+        return finishedAt;
+    }
+
+    public void setFinishedAt(Date finished_at) {
+        this.finishedAt = finished_at;
+    }
+
+    public Date getCommittedAt() {
+        return committedAt;
+    }
+
+    public void setCommittedAt(Date committed_at) {
+        this.committedAt = committed_at;
+    }
+
+    /**
+     * @deprecated Replaced by {@link #getUpdatedAt()}
+     * @return the updated at Date
+     */
+    @Deprecated
+    @JsonIgnore
     public Date getUpdated_at() {
-        return updated_at;
+        return updatedAt;
     }
 
-    public void setUpdated_at(Date updated_at) {
-        this.updated_at = updated_at;
+    /**
+     * @deprecated Replaced by {@link #setUpdatedAt(Date)}
+     * @param updatedAt new updated at value
+     */
+    @Deprecated
+    @JsonIgnore
+    public void setUpdated_at(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
+    /**
+     * @deprecated Replaced by {@link #getStartedAt()}
+     * @return the started at Date
+     */
+    @Deprecated
+    @JsonIgnore
     public Date getStarted_at() {
-        return started_at;
+        return startedAt;
     }
 
-    public void setStarted_at(Date started_at) {
-        this.started_at = started_at;
+    /**
+     * @deprecated Replaced by {@link #setStartedAt(Date)}
+     * @param startedAt new started at value
+     */
+    @Deprecated
+    @JsonIgnore
+    public void setStarted_at(Date startedAt) {
+        this.startedAt = startedAt;
     }
 
+    /**
+     * @deprecated Replaced by {@link #getFinishedAt()}
+     * @return the finished at Date
+     */
+    @Deprecated
+    @JsonIgnore
     public Date getFinished_at() {
-        return finished_at;
+        return finishedAt;
     }
 
-    public void setFinished_at(Date finished_at) {
-        this.finished_at = finished_at;
+    /**
+     * @deprecated Replaced by {@link #setFinishedAt(Date)}
+     * @param finishedAt new finished at value
+     */
+    @Deprecated
+    @JsonIgnore
+    public void setFinished_at(Date finishedAt) {
+        this.finishedAt = finishedAt;
     }
 
+    /**
+     * @deprecated Replaced by {@link #getCommittedAt()}
+     * @return the committed at Date
+     */
+    @Deprecated
+    @JsonIgnore
     public Date getCommitted_at() {
-        return committed_at;
+        return committedAt;
     }
 
-    public void setCommitted_at(Date committed_at) {
-        this.committed_at = committed_at;
+    /**
+     * @deprecated Replaced by {@link #setCommittedAt(Date)}
+     * @param committedAt new committed at value
+     */
+    @Deprecated
+    @JsonIgnore
+    public void setCommitted_at(Date committedAt) {
+        this.committedAt = committedAt;
     }
 
     public String getCoverage() {
@@ -144,5 +223,26 @@ public class Pipeline {
 
     public void setDuration(Integer duration) {
         this.duration = duration;
+    }
+
+    public String getWebUrl() {
+        return webUrl;
+    }
+
+    public void setWebUrl(String webUrl) {
+        this.webUrl = webUrl;
+    }
+
+    public DetailedStatus getDetailedStatus() {
+        return detailedStatus;
+    }
+
+    public void setDetailedStatus(DetailedStatus detailedStatus) {
+        this.detailedStatus = detailedStatus;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

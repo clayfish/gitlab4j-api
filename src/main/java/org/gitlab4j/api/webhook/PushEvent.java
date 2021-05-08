@@ -1,10 +1,8 @@
 
 package org.gitlab4j.api.webhook;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class PushEvent extends AbstractPushEvent implements Event {
 
     public static final String X_GITLAB_EVENT = "Push Hook";
@@ -16,7 +14,13 @@ public class PushEvent extends AbstractPushEvent implements Event {
     }
 
     public void setObjectKind(String objectKind) {
-        if (!OBJECT_KIND.equals(objectKind))
+        if (!OBJECT_KIND.equals(objectKind)) {
             throw new RuntimeException("Invalid object_kind (" + objectKind + "), must be '" + OBJECT_KIND + "'");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

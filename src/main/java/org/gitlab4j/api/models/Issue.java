@@ -4,17 +4,46 @@ package org.gitlab4j.api.models;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.gitlab4j.api.Constants.IssueState;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+
 public class Issue {
 
+    public static class TaskCompletionStatus {
+
+        private Integer count;
+        private Integer completedCount;
+
+        public Integer getCount() {
+            return count;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
+
+        public Integer getCompletedCount() {
+            return completedCount;
+        }
+
+        public void setCompletedCount(Integer completedCount) {
+            this.completedCount = completedCount;
+        }
+
+        @Override
+        public String toString() {
+            return (JacksonJson.toJsonString(this));
+        }
+    }
+
     private Assignee assignee;
+    private List<Assignee> assignees;
     private Author author;
     private Boolean confidential;
     private Date createdAt;
@@ -23,8 +52,16 @@ public class Issue {
     private User closedBy;
     private String description;
     private Date dueDate;
+
+    @JsonProperty("id")
+    private ValueNode actualId;
+    @JsonIgnore
+    private String externalId;
+    @JsonIgnore
     private Integer id;
+
     private Integer iid;
+    private Integer issueLinkId;
     private List<String> labels;
     private Milestone milestone;
     private Integer projectId;
@@ -33,7 +70,16 @@ public class Issue {
     private String title;
     private Integer userNotesCount;
     private String webUrl;
+    private Integer weight;
+    private Boolean discussionLocked;
     private TimeStats timeStats;
+
+    private Integer upvotes;
+    private Integer downvotes;
+    private Integer mergeRequestsCount;
+    private Boolean hasTasks;
+    private String taskStatus;
+    private TaskCompletionStatus taskCompletionStatus;
 
     public Assignee getAssignee() {
         return assignee;
@@ -41,6 +87,14 @@ public class Issue {
 
     public void setAssignee(Assignee assignee) {
         this.assignee = assignee;
+    }
+
+    public List<Assignee> getAssignees() {
+        return assignees;
+    }
+
+    public void setAssignees(List<Assignee> assignees) {
+        this.assignees = assignees;
     }
 
     public Author getAuthor() {
@@ -80,15 +134,44 @@ public class Issue {
     }
 
     public void setDueDate(Date dueDate) {
-        this.dueDate = dueDate;
+	this.dueDate = dueDate;
+    }
+
+    public ValueNode getActualId() {
+        return actualId;
+    }
+
+    public void setActualId(ValueNode id) {
+	actualId = id;
+        if (actualId instanceof TextNode) {
+            externalId = actualId.asText();
+        } else if (actualId instanceof IntNode) {
+            this.id = actualId.asInt();
+        }
     }
 
     public Integer getId() {
-        return id;
+        return (id);
     }
 
     public void setId(Integer id) {
-        this.id = id;
+	this.id = id;
+	if (id != null) {
+	    actualId = new IntNode(id);
+	    externalId = null;
+	}
+    }
+
+    public String getExternalId() {
+        return (externalId);
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+	if (externalId != null) {
+	    actualId = new TextNode(externalId);
+	    id = null;
+	}
     }
 
     public Integer getIid() {
@@ -97,6 +180,14 @@ public class Issue {
 
     public void setIid(Integer iid) {
         this.iid = iid;
+    }
+
+    public Integer getIssueLinkId() {
+        return issueLinkId;
+    }
+
+    public void setIssueLinkId(Integer issueLinkId) {
+        this.issueLinkId = issueLinkId;
     }
 
     public List<String> getLabels() {
@@ -187,11 +278,80 @@ public class Issue {
         this.webUrl = webUrl;
     }
 
+    public Integer getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
+    }
+
+    public Boolean getDiscussionLocked() {
+        return discussionLocked;
+    }
+
+    public void setDiscussionLocked(Boolean discussionLocked) {
+        this.discussionLocked = discussionLocked;
+    }
+
     public TimeStats getTimeStats() {
         return timeStats;
     }
 
     public void setTimeStats(TimeStats timeStats) {
         this.timeStats = timeStats;
+    }
+
+    public Integer getUpvotes() {
+        return upvotes;
+    }
+
+    public void setUpvotes(Integer upvotes) {
+        this.upvotes = upvotes;
+    }
+
+    public Integer getDownvotes() {
+        return downvotes;
+    }
+
+    public void setDownvotes(Integer downvotes) {
+        this.downvotes = downvotes;
+    }
+
+    public Integer getMergeRequestsCount() {
+        return mergeRequestsCount;
+    }
+
+    public void setMergeRequestsCount(Integer mergeRequestsCount) {
+        this.mergeRequestsCount = mergeRequestsCount;
+    }
+
+    public Boolean getHasTasks() {
+        return hasTasks;
+    }
+
+    public void setHasTasks(Boolean hasTasks) {
+        this.hasTasks = hasTasks;
+    }
+
+    public String getTaskStatus() {
+        return taskStatus;
+    }
+
+    public void setTaskStatus(String taskStatus) {
+        this.taskStatus = taskStatus;
+    }
+
+    public TaskCompletionStatus getTaskCompletionStatus() {
+        return taskCompletionStatus;
+    }
+
+    public void setTaskCompletionStatus(TaskCompletionStatus taskCompletionStatus) {
+        this.taskCompletionStatus = taskCompletionStatus;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

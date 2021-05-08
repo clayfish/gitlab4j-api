@@ -2,15 +2,10 @@ package org.gitlab4j.api.systemhooks;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.gitlab4j.api.models.Visibility;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class TeamMemberSystemHookEvent implements SystemHookEvent {
+public class TeamMemberSystemHookEvent extends AbstractSystemHookEvent {
     
     public static final String NEW_TEAM_MEMBER_EVENT = "user_add_to_team";
     public static final String TEAM_MEMBER_REMOVED_EVENT = "user_remove_from_team";
@@ -131,5 +126,10 @@ public class TeamMemberSystemHookEvent implements SystemHookEvent {
 
     public void setProjectVisibility(Visibility projectVisibility) {
         this.projectVisibility = projectVisibility;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

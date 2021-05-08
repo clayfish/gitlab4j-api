@@ -26,26 +26,35 @@ package org.gitlab4j.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.ws.rs.core.Response;
 
-import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.models.AccessLevel;
+import org.gitlab4j.api.models.AccessRequest;
 import org.gitlab4j.api.models.Group;
+import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
+import org.gitlab4j.api.models.ProjectFetches;
+import org.gitlab4j.api.models.ProjectFilter;
+import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.models.Variable;
 import org.gitlab4j.api.models.Visibility;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runners.MethodSorters;
 
 /**
@@ -61,30 +70,27 @@ import org.junit.runners.MethodSorters;
  *
  * NOTE: &amp;FixMethodOrder(MethodSorters.NAME_ASCENDING) is very important to insure that the tests are in the correct order
  */
+@Category(IntegrationTest.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestProjectApi {
+public class TestProjectApi extends AbstractIntegrationTest {
 
     // The following needs to be set to your test repository
-    private static final String TEST_NAMESPACE;
-    private static final String TEST_PROJECT_NAME;
-    private static final String TEST_HOST_URL;
-    private static final String TEST_PRIVATE_TOKEN;
-    private static final String TEST_GROUP;
-    private static final String TEST_GROUP_PROJECT;
-
-    static {
-        TEST_NAMESPACE = TestUtils.getProperty("TEST_NAMESPACE");
-        TEST_PROJECT_NAME = TestUtils.getProperty("TEST_PROJECT_NAME");
-        TEST_HOST_URL = TestUtils.getProperty("TEST_HOST_URL");
-        TEST_PRIVATE_TOKEN = TestUtils.getProperty("TEST_PRIVATE_TOKEN");
-        TEST_GROUP = TestUtils.getProperty("TEST_GROUP");
-        TEST_GROUP_PROJECT = TestUtils.getProperty("TEST_GROUP_PROJECT");
-    }
+    private static final String TEST_GROUP = HelperUtils.getProperty(GROUP_KEY);
+    private static final String TEST_GROUP_PROJECT = HelperUtils.getProperty(GROUP_PROJECT_KEY);
+    private static final String TEST_XFER_NAMESPACE = HelperUtils.getProperty(XFER_NAMESPACE_KEY);
+    private static final String TEST_SUDO_AS_USERNAME = HelperUtils.getProperty(SUDO_AS_USERNAME_KEY);
+    private static final String TEST_REQUEST_ACCESS_USERNAME = HelperUtils.getProperty(TEST_REQUEST_ACCESS_USERNAME_KEY);
 
     private static final String TEST_PROJECT_NAME_1 = "test-gitlab4j-create-project";
     private static final String TEST_PROJECT_NAME_2 = "test-gitlab4j-create-project-2";
+    private static final String TEST_NAMESPACE_PROJECT_NAME = "test-gitlab4j-create-namespace-project";
     private static final String TEST_PROJECT_NAME_UPDATE = "test-gitlab4j-create-project-update";
+    private static final String TEST_XFER_PROJECT_NAME = "test-gitlab4j-xfer-project";
+    private static final String TEST_VARIABLE_KEY_PREFIX = "TEST_VARIABLE_KEY_";
+
     private static GitLabApi gitLabApi;
+    private static Project testProject;
+    private static User currentUser;
 
     public TestProjectApi() {
         super();
@@ -93,64 +99,88 @@ public class TestProjectApi {
     @BeforeClass
     public static void setup() {
 
-        String problems = "";
-        if (TEST_NAMESPACE == null || TEST_NAMESPACE.trim().isEmpty()) {
-            problems += "TEST_NAMESPACE cannot be empty\n";
-        }
+        // Must setup the connection to the GitLab test server
+        gitLabApi = baseTestSetup();
+        testProject = getTestProject();
+        currentUser = getCurrentUser();
 
-        if (TEST_HOST_URL == null || TEST_HOST_URL.trim().isEmpty()) {
-            problems += "TEST_HOST_URL cannot be empty\n";
-        }
-
-        if (TEST_PRIVATE_TOKEN == null || TEST_PRIVATE_TOKEN.trim().isEmpty()) {
-            problems += "TEST_PRIVATE_TOKEN cannot be empty\n";
-        }
-
-        if (problems.isEmpty()) {
-            gitLabApi = new GitLabApi(ApiVersion.V4, TEST_HOST_URL, TEST_PRIVATE_TOKEN);
-        } else {
-            System.err.print(problems);
-        }
-
-        deleteAllTestProjects();
+        deleteAllTransientTestData();
     }
 
     @AfterClass
     public static void teardown() throws GitLabApiException {
-        deleteAllTestProjects();
+        deleteAllTransientTestData();
     }
 
-    private static void deleteAllTestProjects() {
-        if (gitLabApi != null) {
-            try {
-                Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME_1);
-                gitLabApi.getProjectApi().deleteProject(project);
-            } catch (GitLabApiException ignore) {}
+    private static void deleteAllTransientTestData() {
 
-            try {
-                Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME_2);
-                gitLabApi.getProjectApi().deleteProject(project);
-            } catch (GitLabApiException ignore) {}
+        if (gitLabApi == null) {
+            return;
+        }
 
-            try {
-                Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME_UPDATE);
-                gitLabApi.getProjectApi().deleteProject(project);
-            } catch (GitLabApiException ignore) {}
+        try {
+            gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_NAMESPACE, TEST_PROJECT_NAME_1));
+        } catch (GitLabApiException ignore) {}
 
-            if (TEST_GROUP != null && TEST_PROJECT_NAME != null) {
-                try {
-                    Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-                    List<Group> groups = gitLabApi.getGroupApi().getGroups(TEST_GROUP);
-                    gitLabApi.getProjectApi().unshareProject(project.getId(), groups.get(0).getId());
-                } catch (GitLabApiException ignore) {
+        try {
+            gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_NAMESPACE, TEST_PROJECT_NAME_2));
+        } catch (GitLabApiException ignore) {}
+
+        try {
+            gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_NAMESPACE, TEST_PROJECT_NAME_UPDATE));
+        } catch (GitLabApiException ignore) {}
+
+        try {
+            gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_NAMESPACE, TEST_XFER_PROJECT_NAME));
+        } catch (GitLabApiException ignore) {}
+
+        try {
+            gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_NAMESPACE, TEST_NAMESPACE_PROJECT_NAME));
+        } catch (GitLabApiException ignore) {}
+
+        if (TEST_GROUP != null && TEST_PROJECT_NAME != null) {
+            try {
+                List<Group> groups = gitLabApi.getGroupApi().getGroups(TEST_GROUP);
+                if (groups != null && groups.size() > 0) {
+                    gitLabApi.getProjectApi().unshareProject(testProject, groups.get(0).getId());
                 }
-            }
 
-            if (TEST_GROUP != null && TEST_GROUP_PROJECT != null) {
+                List<Variable> variables = gitLabApi.getProjectApi().getVariables(testProject);
+                if (variables != null) {
+
+                    for (Variable variable : variables) {
+                        if (variable.getKey().startsWith(TEST_VARIABLE_KEY_PREFIX)) {
+                            gitLabApi.getProjectApi().updateVariable(testProject, variable.getKey(), "EMPTY", false);
+                            gitLabApi.getProjectApi().deleteVariable(testProject, variable.getKey());
+                        }
+                    }
+                }
+            } catch (GitLabApiException ignore) {
+            }
+        }
+
+        if (TEST_GROUP != null && TEST_GROUP_PROJECT != null) {
+            try {
+                gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_NAMESPACE, TEST_GROUP_PROJECT));
+            } catch (GitLabApiException ignore) {}
+        }
+
+        if (TEST_XFER_NAMESPACE != null) {
+            try {
+                gitLabApi.getProjectApi().deleteProject(Project.getPathWithNammespace(TEST_XFER_NAMESPACE, TEST_XFER_PROJECT_NAME));
+            } catch (GitLabApiException ignore) {}
+        }
+
+        if (TEST_REQUEST_ACCESS_USERNAME != null) {
+            Optional<User> user = gitLabApi.getUserApi().getOptionalUser(TEST_REQUEST_ACCESS_USERNAME);
+            if (user.isPresent()) {
+                Integer userId = user.get().getId();
                 try {
-                    Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_GROUP_PROJECT);
-                    gitLabApi.getProjectApi().deleteProject(project);
-                } catch (GitLabApiException ignore) {
+                    gitLabApi.getProjectApi().denyAccessRequest(testProject, userId);
+                } catch (Exception e) {
+                    try {
+                        gitLabApi.getProjectApi().removeMember(testProject, userId);
+                    } catch (Exception ignore) {}
                 }
             }
         }
@@ -158,7 +188,15 @@ public class TestProjectApi {
 
     @Before
     public void beforeMethod() {
-        assumeTrue(gitLabApi != null);
+        assumeNotNull(gitLabApi);
+    }
+
+    @Test
+    public void testProjectsNoAuth() throws GitLabApiException {
+        GitLabApi gitLabApi = new GitLabApi(TEST_HOST_URL, "");
+        List<Project> projects = gitLabApi.getProjectApi().getProjects(1, 1);
+        assertTrue(projects != null);
+        gitLabApi.close();
     }
 
     @Test
@@ -290,11 +328,12 @@ public class TestProjectApi {
         assertTrue(projects.size() >= 2);
 
         assertNotNull(projects.get(0).getStatistics());
-        assertNotNull(projects.get(0).getStatistics().getLfsObjectSize());
+        assertNotNull(projects.get(0).getStatistics().getLfsObjectsSize());
         assertNotNull(projects.get(0).getStatistics().getCommitCount());
         assertNotNull(projects.get(0).getStatistics().getJobArtifactsSize());
         assertNotNull(projects.get(0).getStatistics().getStorageSize());
-
+        assertNotNull(projects.get(0).getStatistics().getRepositorySize());
+        assertNotNull(projects.get(0).getStatistics().getWikiSize());
     }
 
     @Test
@@ -351,18 +390,17 @@ public class TestProjectApi {
     @Test
     public void testListStarredProjects() throws GitLabApiException {
 
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
+        assumeNotNull(testProject);
 
         try {
-            gitLabApi.getProjectApi().starProject(project);
+            gitLabApi.getProjectApi().starProject(testProject);
         } catch (Exception ignore) {
         }
 
         List<Project> projects = gitLabApi.getProjectApi().getStarredProjects();
 
         try {
-            gitLabApi.getProjectApi().unstarProject(project);
+            gitLabApi.getProjectApi().unstarProject(testProject);
         } catch (Exception ignore) {
         }
 
@@ -375,11 +413,10 @@ public class TestProjectApi {
     @Test
     public void testListStarredProjectsWithParams() throws GitLabApiException {
 
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
+        assumeNotNull(testProject);
 
         try {
-            gitLabApi.getProjectApi().starProject(project);
+            gitLabApi.getProjectApi().starProject(testProject);
         } catch (Exception ignore) {
         }
 
@@ -387,7 +424,7 @@ public class TestProjectApi {
                 Constants.ProjectOrderBy.NAME, Constants.SortOrder.DESC, TEST_PROJECT_NAME, true, true, true, true, true);
 
         try {
-            gitLabApi.getProjectApi().unstarProject(project);
+            gitLabApi.getProjectApi().unstarProject(testProject);
         } catch (Exception ignore) {
         }
 
@@ -418,15 +455,49 @@ public class TestProjectApi {
     }
 
     @Test
-    public void testRemoveByDeleteParameterBased() throws GitLabApiException {
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME_2);
-        gitLabApi.getProjectApi().deleteProject(project);
-    }
-
-    @Test
     public void testProjects() throws GitLabApiException {
         List<Project> projects = gitLabApi.getProjectApi().getProjects();
         assertTrue(projects != null);
+    }
+
+    @Test
+    public void testProjectsWithFilter() throws GitLabApiException {
+        ProjectFilter filter = new ProjectFilter().withOwned(true).withStatistics(false);
+        List<Project> projects = gitLabApi.getProjectApi().getProjects(filter);
+        assertTrue(projects != null);
+        assertTrue(projects.size() > 0);
+        assertNull(projects.get(0).getStatistics());
+    }
+
+    @Test
+    public void testProjectsWithFilterAndStatistics() throws GitLabApiException {
+        ProjectFilter filter = new ProjectFilter().withOwned(true).withStatistics(true);
+        List<Project> projects = gitLabApi.getProjectApi().getProjects(filter);
+        assertTrue(projects != null);
+        assertTrue(projects.size() > 0);
+        assertNotNull(projects.get(0).getStatistics());
+    }
+
+    @Test
+    public void testProjectsWithAccessLevelFilter() throws GitLabApiException {
+
+        ProjectFilter filter = new ProjectFilter().withMinAccessLevel(AccessLevel.GUEST);
+        List<Project> guestProjects = gitLabApi.getProjectApi().getProjects(filter);
+        assertTrue(guestProjects != null);
+        assertTrue(guestProjects.size() > 0);
+
+        // Use sudo to impersonate a non-admin user
+        try {
+
+            gitLabApi.sudo(TEST_SUDO_AS_USERNAME);
+            filter = new ProjectFilter().withMinAccessLevel(AccessLevel.OWNER);
+            List<Project> ownedProjects = gitLabApi.getProjectApi().getProjects(filter);
+            assertTrue(ownedProjects != null);
+            assertTrue(guestProjects.size() > ownedProjects.size());
+
+        } finally {
+            gitLabApi.unsudo();
+        }
     }
 
     @Test
@@ -475,6 +546,24 @@ public class TestProjectApi {
     }
 
     @Test
+    public void testCreateProjectInNamespace() throws GitLabApiException {
+
+        assumeNotNull(currentUser);
+
+        Project namespaceProject = null;
+        try {
+            namespaceProject = gitLabApi.getProjectApi().createProject(currentUser.getId(), TEST_NAMESPACE_PROJECT_NAME);
+            assertNotNull(namespaceProject);
+        } finally {
+            if (namespaceProject != null) {
+                try {
+                    gitLabApi.getProjectApi().deleteProject(namespaceProject);
+                } catch (Exception ignore) {}
+            }
+        }
+    }
+
+    @Test
     public void testForkProject() throws GitLabApiException {
 
         assumeTrue(TEST_GROUP != null && TEST_GROUP_PROJECT != null);
@@ -482,8 +571,18 @@ public class TestProjectApi {
 
         Project project = gitLabApi.getProjectApi().getProject(TEST_GROUP, TEST_GROUP_PROJECT);
         assertNotNull(project);
-        Project forkedProject = gitLabApi.getProjectApi().forkProject(project.getId(), TEST_NAMESPACE);
-        assertNotNull(forkedProject);
+
+        Project forkedProject = null;
+        try {
+            forkedProject = gitLabApi.getProjectApi().forkProject(project.getId(), TEST_NAMESPACE);
+            assertNotNull(forkedProject);
+        } finally {
+            if (forkedProject != null) {
+                try {
+                    gitLabApi.getProjectApi().deleteProject(forkedProject);
+                } catch (Exception ignore) {}
+            }
+        }
     }
 
     @Test
@@ -491,25 +590,21 @@ public class TestProjectApi {
 
         assumeTrue(TEST_GROUP != null && TEST_GROUP_PROJECT != null);
         assumeTrue(TEST_GROUP.trim().length() > 0 && TEST_GROUP_PROJECT.trim().length() > 0);
-
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
+        assumeNotNull(testProject);
 
         List<Group> groups = gitLabApi.getGroupApi().getGroups(TEST_GROUP);
         assertNotNull(groups);
 
         Group shareGroup = groups.get(0);
-        gitLabApi.getProjectApi().shareProject(project.getId(), shareGroup.getId(), AccessLevel.DEVELOPER, null);
-        gitLabApi.getProjectApi().unshareProject(project.getId(), shareGroup.getId());
+        gitLabApi.getProjectApi().shareProject(testProject, shareGroup.getId(), AccessLevel.DEVELOPER, null);
+        gitLabApi.getProjectApi().unshareProject(testProject, shareGroup.getId());
     }
 
     @Test
     public void testArchiveProject() throws GitLabApiException {
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
-
-        assertEquals(true, gitLabApi.getProjectApi().archiveProject(project.getId()).getArchived());
-        assertEquals(false, gitLabApi.getProjectApi().unarchiveProject(project.getId()).getArchived());
+        assertNotNull(testProject);
+        assertEquals(true, gitLabApi.getProjectApi().archiveProject(testProject.getId()).getArchived());
+        assertEquals(false, gitLabApi.getProjectApi().unarchiveProject(testProject).getArchived());
     }
 
     @Test
@@ -540,20 +635,240 @@ public class TestProjectApi {
     @Test
     public void testStarAndUnstarProject() throws GitLabApiException {
 
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
+        assumeNotNull(testProject);
 
         try {
-            gitLabApi.getProjectApi().unstarProject(project);
+            gitLabApi.getProjectApi().unstarProject(testProject);
         } catch (Exception ignore) {
         }
 
-        Project starredProject = gitLabApi.getProjectApi().starProject(project);
+        Project starredProject = gitLabApi.getProjectApi().starProject(testProject);
         assertNotNull(starredProject);
         assertEquals(1, (int)starredProject.getStarCount());
 
-        Project unstarredProject = gitLabApi.getProjectApi().unstarProject(project);
+        Project unstarredProject = gitLabApi.getProjectApi().unstarProject(testProject);
         assertNotNull(unstarredProject);
         assertEquals(0, (int)unstarredProject.getStarCount());
+    }
+
+    @Test
+    public void testTransferProject() throws GitLabApiException {
+
+        assumeTrue(TEST_XFER_NAMESPACE != null && TEST_XFER_NAMESPACE.trim().length() > 0);
+
+        Project project = new Project()
+                .withName(TEST_XFER_PROJECT_NAME)
+                .withDescription("GitLab4J test project - transfer.")
+                .withVisibility(Visibility.PUBLIC);
+
+        Project newProject = gitLabApi.getProjectApi().createProject(project);
+        assertNotNull(newProject);
+
+        Project projectToTransfer = gitLabApi.getProjectApi().getProject(newProject);
+        assertNotNull(projectToTransfer);
+
+        Project transferedProject = gitLabApi.getProjectApi().transferProject(projectToTransfer, TEST_XFER_NAMESPACE);
+        assertNotNull(transferedProject);
+    }
+
+    @Test
+    public void testVariables() throws GitLabApiException {
+
+        assumeNotNull(testProject);
+
+        String key = TEST_VARIABLE_KEY_PREFIX + HelperUtils.getRandomInt() + "_" +  HelperUtils.getRandomInt();
+        String value = "ABCDEFG12345678" + HelperUtils.getRandomInt();
+        Variable variable = gitLabApi.getProjectApi().createVariable(testProject, key, value, null, null, true);
+
+        assertNotNull(variable);
+        assertEquals(key, variable.getKey());
+        assertEquals(value, variable.getValue());
+
+        Stream<Variable> variables = gitLabApi.getProjectApi().getVariablesStream(testProject);
+        assertNotNull(variables);
+
+        Variable matchingVariable = variables.filter(v -> v.getKey().equals(key)).findAny().orElse(null);
+        assertNotNull(matchingVariable);
+        assertEquals(key, matchingVariable.getKey());
+        assertEquals(value, matchingVariable.getValue());
+        assertFalse(matchingVariable.getProtected());
+
+        String scope = matchingVariable.getEnvironmentScope();
+        assertTrue(scope == null || "*".equals(scope));
+
+        gitLabApi.getProjectApi().updateVariable(testProject, key, "NO_VALUE", true, "DEV");
+        variable = gitLabApi.getProjectApi().getVariable(testProject, key);
+
+        assertNotNull(variable);
+        assertEquals(key, variable.getKey());
+        assertEquals("NO_VALUE", variable.getValue());
+        assertTrue(variable.getProtected());
+
+        gitLabApi.getProjectApi().updateVariable(testProject, key, value, Variable.Type.ENV_VAR, false, true, "DEV");
+        variable = gitLabApi.getProjectApi().getVariable(testProject, key);
+
+        assertNotNull(variable);
+        assertEquals(key, variable.getKey());
+        assertEquals(value, variable.getValue());
+        assertEquals(Variable.Type.ENV_VAR, variable.getVariableType());
+        assertFalse(variable.getProtected());
+
+        gitLabApi.getProjectApi().deleteVariable(testProject, key);
+        variables = gitLabApi.getProjectApi().getVariablesStream(testProject);
+        assertNotNull(variables);
+
+        matchingVariable = variables.filter(v -> v.getKey().equals(key)).findAny().orElse(null);
+        assertNull(matchingVariable);
+    }
+
+    @Test
+    public void testFileVariable() throws GitLabApiException {
+
+        assumeNotNull(testProject);
+
+        String key = TEST_VARIABLE_KEY_PREFIX + HelperUtils.getRandomInt() + "_" +  HelperUtils.getRandomInt();
+        String value = "/tmp/test.txt";
+        Variable variable = gitLabApi.getProjectApi().createVariable(testProject, key, value, Variable.Type.FILE, null, false);
+
+        assertNotNull(variable);
+        assertEquals(key, variable.getKey());
+        assertEquals(value, variable.getValue());
+        assertEquals(Variable.Type.FILE, variable.getVariableType());
+
+        gitLabApi.getProjectApi().deleteVariable(testProject, key);
+        Stream<Variable> variables = gitLabApi.getProjectApi().getVariablesStream(testProject);
+        assertNotNull(variables);
+
+        Variable matchingVariable = variables.filter(v -> v.getKey().equals(key)).findAny().orElse(null);
+        assertNull(matchingVariable);
+    }
+
+    @Test
+    public void testGetMembers() throws GitLabApiException {
+
+        assumeNotNull(testProject);
+
+        // Act
+        List<Member> members = gitLabApi.getProjectApi().getMembers(testProject);
+
+        // Assert
+        assertNotNull(members);
+    }
+
+    @Test
+    public void testAllMemberOperations() throws GitLabApiException {
+
+        assumeNotNull(testProject);
+
+        // Act
+        List<Member> members = gitLabApi.getProjectApi().getAllMembers(testProject);
+
+        // Assert
+        assertNotNull(members);
+    }
+
+    @Test
+    public void testRequestAccess() throws GitLabApiException {
+
+        assumeTrue(TEST_REQUEST_ACCESS_USERNAME != null && TEST_REQUEST_ACCESS_USERNAME.length() > 0);
+
+        gitLabApi.sudo(TEST_REQUEST_ACCESS_USERNAME);
+        User user = gitLabApi.getUserApi().getCurrentUser();
+        assertNotNull(user);
+        final Integer userId = user.getId();
+
+        try {
+            try {
+
+                AccessRequest accessRequest = gitLabApi.getProjectApi().requestAccess(testProject);
+                assertNotNull(accessRequest);
+                assertEquals(userId, accessRequest.getId());
+
+            } finally {
+                gitLabApi.unsudo();
+            }
+
+            Stream<AccessRequest> requests = gitLabApi.getProjectApi().getAccessRequestsStream(testProject);
+            assertTrue(requests.anyMatch(r -> r.getId() == userId));
+
+            AccessRequest accessRequest = gitLabApi.getProjectApi().approveAccessRequest(testProject, user.getId(), AccessLevel.DEVELOPER);
+            assertNotNull(accessRequest);
+            assertEquals(user.getId(), accessRequest.getId());
+            assertEquals(AccessLevel.DEVELOPER, accessRequest.getAccessLevel());
+
+            user = null;
+
+            requests = gitLabApi.getProjectApi().getAccessRequestsStream(testProject);
+            assertFalse(requests.anyMatch(r -> r.getId() == userId));
+
+        } finally {
+            try {
+                if (user == null) {
+                    gitLabApi.getProjectApi().removeMember(testProject, userId);
+                } else {
+                    gitLabApi.getProjectApi().denyAccessRequest(testProject, userId);
+                }
+            } catch (Exception ignore) {}
+        }
+    }
+
+    @Test
+    public void testDenyRequestAccess() throws GitLabApiException {
+
+        assumeTrue(TEST_REQUEST_ACCESS_USERNAME != null && TEST_REQUEST_ACCESS_USERNAME.length() > 0);
+
+        gitLabApi.sudo(TEST_REQUEST_ACCESS_USERNAME);
+        User user = gitLabApi.getUserApi().getCurrentUser();
+        assertNotNull(user);
+        final Integer userId = user.getId();
+
+        try {
+            try {
+
+                AccessRequest accessRequest = gitLabApi.getProjectApi().requestAccess(testProject);
+                assertNotNull(accessRequest);
+                assertEquals(userId, accessRequest.getId());
+
+            } finally {
+                gitLabApi.unsudo();
+            }
+
+            List<AccessRequest> requests = gitLabApi.getProjectApi().getAccessRequests(testProject);
+            assertTrue(requests.stream().anyMatch(r -> r.getId() == userId));
+
+            gitLabApi.getProjectApi().denyAccessRequest(testProject, userId);
+
+            requests = gitLabApi.getProjectApi().getAccessRequests(testProject);
+            assertFalse(requests.stream().anyMatch(r -> r.getId() == userId));
+
+            user = null;
+
+        } finally {
+            try {
+                if (user != null) {
+                    gitLabApi.getProjectApi().denyAccessRequest(testProject, userId);
+                }
+            } catch (Exception ignore) {
+            }
+        }
+    }
+
+    @Test
+    public void testGetProjectStatistics() throws GitLabApiException {
+        assertNotNull(testProject);
+        Optional<ProjectFetches> statistics = gitLabApi.getProjectApi().getOptionalProjectStatistics(testProject);
+        assertTrue(statistics.isPresent());
+    }
+
+    @Test
+    public void testTriggerHousekeeping() throws GitLabApiException {
+        assertNotNull(testProject);
+        try {
+            gitLabApi.getProjectApi().triggerHousekeeping(testProject);
+        } catch (GitLabApiException glae) {
+            if (!glae.getMessage().contains("already triggered")) {
+        	throw glae;
+            }
+        }
     }
 }

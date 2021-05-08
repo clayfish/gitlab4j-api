@@ -1,13 +1,13 @@
 package org.gitlab4j.api.webhook;
 
 import java.util.Date;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import java.util.List;
+import java.util.Map;
 
 import org.gitlab4j.api.models.Assignee;
+import org.gitlab4j.api.models.Duration;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class EventMergeRequest {
     
     private Integer assigneeId;
@@ -17,6 +17,7 @@ public class EventMergeRequest {
     private String description;
     private Integer id;
     private Integer iid;
+    private String mergeCommitSha;
     private String mergeStatus;
     private Integer milestoneId;
     private Integer position;
@@ -39,6 +40,26 @@ public class EventMergeRequest {
     private String url;
     private String action;
     private Assignee assignee;
+
+    private Integer updatedById;
+    private String mergeError;
+    private Map<String, String> mergeParams;
+    private Boolean mergeWhenPipelineSucceeds;
+    private Integer mergeUserId;
+    private Date deletedAt;
+    private String inProgressMergeCommitSha;
+    private Integer lockVersion;
+
+    private Date last_editedAt;
+    private Integer lastEditedById;
+    private Integer headPipelineId;
+    private Boolean refFetched;
+    private Integer mergeIid;
+    private Integer totalTimeSpent;
+    private Duration humanTotalTimeSpent;
+    private Integer timeEstimate;
+    private Duration humanTimeEstimate;
+    private List<Integer> assigneeIds;
 
     public Integer getAssigneeId() {
         return this.assigneeId;
@@ -94,6 +115,14 @@ public class EventMergeRequest {
 
     public void setIid(Integer iid) {
         this.iid = iid;
+    }
+
+    public String getMergeCommitSha() {
+        return mergeCommitSha;
+    }
+
+    public void setMergeCommitSha(String mergeCommitSha) {
+        this.mergeCommitSha = mergeCommitSha;
     }
 
     public String getMergeStatus() {
@@ -262,5 +291,154 @@ public class EventMergeRequest {
 
     public void setAssignee(Assignee assignee) {
         this.assignee = assignee;
+    }
+
+    public Integer getUpdatedById() {
+        return updatedById;
+    }
+
+    public void setUpdatedById(Integer updatedById) {
+        this.updatedById = updatedById;
+    }
+
+    public String getMergeError() {
+        return mergeError;
+    }
+
+    public void setMergeError(String mergeError) {
+        this.mergeError = mergeError;
+    }
+
+    public Map<String, String> getMergeParams() {
+        return mergeParams;
+    }
+
+    public void setMergeParams(Map<String, String> mergeParams) {
+        this.mergeParams = mergeParams;
+    }
+
+    public Boolean getMergeWhenPipelineSucceeds() {
+        return mergeWhenPipelineSucceeds;
+    }
+
+    public void setMergeWhenPipelineSucceeds(Boolean mergeWhenPipelineSucceeds) {
+        this.mergeWhenPipelineSucceeds = mergeWhenPipelineSucceeds;
+    }
+
+    public Integer getMergeUserId() {
+        return mergeUserId;
+    }
+
+    public void setMergeUserId(Integer mergeUserId) {
+        this.mergeUserId = mergeUserId;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public String getInProgressMergeCommitSha() {
+        return inProgressMergeCommitSha;
+    }
+
+    public void setInProgressMergeCommitSha(String inProgressMergeCommitSha) {
+        this.inProgressMergeCommitSha = inProgressMergeCommitSha;
+    }
+
+    public Integer getLockVersion() {
+        return lockVersion;
+    }
+
+    public void setLockVersion(Integer lockVersion) {
+        this.lockVersion = lockVersion;
+    }
+
+    public Date getLast_editedAt() {
+        return last_editedAt;
+    }
+
+    public void setLast_editedAt(Date last_editedAt) {
+        this.last_editedAt = last_editedAt;
+    }
+
+    public Integer getLastEditedById() {
+        return lastEditedById;
+    }
+
+    public void setLastEditedById(Integer lastEditedById) {
+        this.lastEditedById = lastEditedById;
+    }
+
+    public Integer getHeadPipelineId() {
+        return headPipelineId;
+    }
+
+    public void setHeadPipelineId(Integer headPipelineId) {
+        this.headPipelineId = headPipelineId;
+    }
+
+    public Boolean getRefFetched() {
+        return refFetched;
+    }
+
+    public void setRefFetched(Boolean refFetched) {
+        this.refFetched = refFetched;
+    }
+
+    public Integer getMergeIid() {
+        return mergeIid;
+    }
+
+    public void setMergeIid(Integer mergeIid) {
+        this.mergeIid = mergeIid;
+    }
+
+    public Integer getTotalTimeSpent() {
+        return totalTimeSpent;
+    }
+
+    public void setTotalTimeSpent(Integer totalTimeSpent) {
+        this.totalTimeSpent = totalTimeSpent;
+    }
+
+    public Duration getHumanTotalTimeSpent() {
+        return humanTotalTimeSpent;
+    }
+
+    public void setHumanTotalTimeSpent(Duration humanTotalTimeSpent) {
+        this.humanTotalTimeSpent = humanTotalTimeSpent;
+    }
+
+    public Integer getTimeEstimate() {
+        return timeEstimate;
+    }
+
+    public void setTimeEstimate(Integer timeEstimate) {
+        this.timeEstimate = timeEstimate;
+    }
+
+    public Duration getHumanTimeEstimate() {
+        return humanTimeEstimate;
+    }
+
+    public void setHumanTimeEstimate(Duration humanTimeEstimate) {
+        this.humanTimeEstimate = humanTimeEstimate;
+    }
+
+    public List<Integer> getAssigneeIds() {
+        return assigneeIds;
+    }
+
+    public void setAssigneeIds(List<Integer> assigneeIds) {
+        this.assigneeIds = assigneeIds;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

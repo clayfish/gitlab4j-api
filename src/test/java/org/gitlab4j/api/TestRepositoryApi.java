@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,19 +12,19 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
 
-import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.models.Branch;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.CompareResults;
 import org.gitlab4j.api.models.Project;
-import org.gitlab4j.api.models.RepositoryFile;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runners.MethodSorters;
 
 /**
@@ -39,25 +39,15 @@ import org.junit.runners.MethodSorters;
  *
  * NOTE: &amp;FixMethodOrder(MethodSorters.NAME_ASCENDING) is very important to insure that testCreate() is executed first.
  */
+@Category(IntegrationTest.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestRepositoryApi {
-
-    // The following needs to be set to your test repository
-    private static final String TEST_PROJECT_NAME;
-    private static final String TEST_NAMESPACE;
-    private static final String TEST_HOST_URL;
-    private static final String TEST_PRIVATE_TOKEN;
-
-    static {
-        TEST_NAMESPACE = TestUtils.getProperty("TEST_NAMESPACE");
-        TEST_PROJECT_NAME = TestUtils.getProperty("TEST_PROJECT_NAME");
-        TEST_HOST_URL = TestUtils.getProperty("TEST_HOST_URL");
-        TEST_PRIVATE_TOKEN = TestUtils.getProperty("TEST_PRIVATE_TOKEN");
-    }
+public class TestRepositoryApi extends AbstractIntegrationTest {
 
     private static final String TEST_BRANCH_NAME = "feature/test_branch";
+    private static final String TEST_BRANCH_SEARCH_TERM = "test";
+    private static final String TEST_BRANCH1 = "feature/test_branch1";
+    private static final String TEST_BRANCH2 = "feature/test_branch2";
     private static final String TEST_PROTECT_BRANCH_NAME = "feature/protect_branch";
-    private static final String TEST_FILEPATH = "test-file.txt";
     private static GitLabApi gitLabApi;
 
     public TestRepositoryApi() {
@@ -67,29 +57,10 @@ public class TestRepositoryApi {
     @BeforeClass
     public static void setup() {
 
-        String problems = "";
-        if (TEST_NAMESPACE == null || TEST_NAMESPACE.trim().isEmpty()) {
-            problems += "TEST_NAMESPACE cannot be empty\n";
-        }
+        // Must setup the connection to the GitLab test server
+        gitLabApi = baseTestSetup();
 
-        if (TEST_PROJECT_NAME == null || TEST_PROJECT_NAME.trim().isEmpty()) {
-            problems += "TEST_PROJECT_NAME cannot be empty\n";
-        }
-
-        if (TEST_HOST_URL == null || TEST_HOST_URL.trim().isEmpty()) {
-            problems += "TEST_HOST_URL cannot be empty\n";
-        }
-
-        if (TEST_PRIVATE_TOKEN == null || TEST_PRIVATE_TOKEN.trim().isEmpty()) {
-            problems += "TEST_PRIVATE_TOKEN cannot be empty\n";
-        }
-
-        if (problems.isEmpty()) {
-            gitLabApi = new GitLabApi(ApiVersion.V3, TEST_HOST_URL, TEST_PRIVATE_TOKEN);
-            teardown();
-        } else {
-            System.err.print(problems);
-        }
+        teardown();
     }
 
     @AfterClass
@@ -100,12 +71,17 @@ public class TestRepositoryApi {
                 Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
 
                 try {
-                    gitLabApi.getRepositoryFileApi().deleteFile(TEST_FILEPATH, project.getId(), TEST_BRANCH_NAME, "Cleanup test files.");
+                    gitLabApi.getRepositoryApi().deleteBranch(project.getId(), TEST_BRANCH_NAME);
                 } catch (GitLabApiException ignore) {
                 }
 
                 try {
-                    gitLabApi.getRepositoryApi().deleteBranch(project.getId(), TEST_BRANCH_NAME);
+                    gitLabApi.getRepositoryApi().deleteBranch(project.getId(), TEST_BRANCH1);
+                } catch (GitLabApiException ignore) {
+                }
+
+                try {
+                    gitLabApi.getRepositoryApi().deleteBranch(project.getId(), TEST_BRANCH2);
                 } catch (GitLabApiException ignore) {
                 }
 
@@ -118,7 +94,7 @@ public class TestRepositoryApi {
 
     @Before
     public void beforeMethod() {
-        assumeTrue(gitLabApi != null);
+        assumeNotNull(gitLabApi);
     }
 
     @Test
@@ -131,6 +107,12 @@ public class TestRepositoryApi {
 
         Branch fetchedBranch = gitLabApi.getRepositoryApi().getBranch(project.getId(), TEST_BRANCH_NAME);
         assertNotNull(fetchedBranch);
+
+        List<Branch> searchBranches = gitLabApi.getRepositoryApi().getBranches(project.getId(), TEST_BRANCH_SEARCH_TERM);
+        assertEquals(searchBranches.size(), 1);
+
+        searchBranches = gitLabApi.getRepositoryApi().getBranches(project.getId());
+        assertTrue(searchBranches.size() > 1);
 
         assertEquals(branch.getName(), fetchedBranch.getName());
     }
@@ -174,36 +156,6 @@ public class TestRepositoryApi {
     }
 
     @Test
-    public void testRawFileViaFile() throws GitLabApiException, IOException {
-
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
-
-        File file = gitLabApi.getRepositoryFileApi().getRawFile(project.getId(), "master", "README", null);
-        assertTrue(file.length() > 0);
-        file.delete();
-
-        file = gitLabApi.getRepositoryFileApi().getRawFile(project.getId(), "master", "README", new File("."));
-        assertTrue(file.length() > 0);
-        file.delete();
-    }
-
-    @Test
-    public void testRepositoryFileViaInputStream() throws GitLabApiException, IOException {
-
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
-
-        InputStream in = gitLabApi.getRepositoryFileApi().getRawFile(project.getId(), "master", "README");
-
-        Path target = Files.createTempFile(TEST_PROJECT_NAME + "-README", "");
-        Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-
-        assertTrue(target.toFile().length() > 0);
-        Files.delete(target);
-    }
-
-    @Test
     public void testCompare() throws GitLabApiException {
 
         Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
@@ -222,36 +174,6 @@ public class TestRepositoryApi {
     }
 
     @Test
-    public void testCreateFileAndDeleteFile() throws GitLabApiException {
-
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
-
-        RepositoryFile file = new RepositoryFile();
-        file.setFilePath(TEST_FILEPATH);
-        file.setContent("This is a test file.");
-        RepositoryFile createdFile = gitLabApi.getRepositoryFileApi().createFile(file, project.getId(), TEST_BRANCH_NAME, "Testing createFile().");
-        assertNotNull(createdFile);
-
-        gitLabApi.getRepositoryFileApi().deleteFile(TEST_FILEPATH, project.getId(), TEST_BRANCH_NAME, "Testing deleteFile().");
-    }
-
-    @Test
-    public void testCreateFileWithEmptyContent() throws GitLabApiException {
-
-        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-        assertNotNull(project);
-
-        RepositoryFile file = new RepositoryFile();
-        file.setFilePath(TEST_FILEPATH);
-        file.setContent("");
-        RepositoryFile createdFile = gitLabApi.getRepositoryFileApi().createFile(file, project.getId(), TEST_BRANCH_NAME, "Testing createFile().");
-        assertNotNull(createdFile);
-
-        gitLabApi.getRepositoryFileApi().deleteFile(TEST_FILEPATH, project.getId(), TEST_BRANCH_NAME, "Testing deleteFile().");
-    }
-
-    @Test
     public void testProtectBranch() throws GitLabApiException {
 
         Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
@@ -267,5 +189,21 @@ public class TestRepositoryApi {
         Branch unprotectedBranch = gitLabApi.getRepositoryApi().unprotectBranch(project.getId(), TEST_PROTECT_BRANCH_NAME);
         assertNotNull(unprotectedBranch);
         assertFalse(unprotectedBranch.getProtected());
+    }
+
+    @Test
+    public void testMergeBase() throws GitLabApiException {
+
+        Project project = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
+        assertNotNull(project);
+
+        Branch branch1 = gitLabApi.getRepositoryApi().createBranch(project.getId(), TEST_BRANCH1, "master");
+        assertNotNull(branch1);
+        Branch branch2 = gitLabApi.getRepositoryApi().createBranch(project.getId(), TEST_BRANCH2, "master");
+        assertNotNull(branch2);
+
+        List<String> refs = Arrays.asList(TEST_BRANCH1, TEST_BRANCH2);
+        Commit mergeBase = gitLabApi.getRepositoryApi().getMergeBase(project, refs);
+        assertNotNull(mergeBase);
     }
 }

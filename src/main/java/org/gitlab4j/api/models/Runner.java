@@ -1,15 +1,11 @@
 package org.gitlab4j.api.models;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.utils.JacksonJsonEnumHelper;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Runner {
 
     private Integer id;
@@ -19,17 +15,44 @@ public class Runner {
     private String name;
     private Boolean online;
     private RunnerStatus status;
+    private String ipAddress;
 
     /**
-     * Enum to use for RunnersApi filtering.
+     * Enum to use for RunnersApi filtering on status.
      */
     public enum RunnerStatus {
-        SPECIFIC, SHARED, ACTIVE, ONLINE, PAUSED, OFFLINE;
+
+        ACTIVE, ONLINE, PAUSED, OFFLINE;
+
         private static JacksonJsonEnumHelper<RunnerStatus> enumHelper =
                 new JacksonJsonEnumHelper<>(RunnerStatus.class);
 
         @JsonCreator
         public static RunnerStatus forValue(String value) {
+            return enumHelper.forValue(value);
+        }
+
+        @JsonValue
+        public String toValue() {
+            return (enumHelper.toString(this));
+        }
+
+        @Override
+        public String toString() {
+            return (enumHelper.toString(this));
+        }
+    }
+
+    /**
+     * Enum to use for RunnersApi filtering on type.
+     */
+    public enum RunnerType {
+        INSTANCE_TYPE, GROUP_TYPE, PROJECT_TYPE;
+        private static JacksonJsonEnumHelper<RunnerType> enumHelper =
+                new JacksonJsonEnumHelper<>(RunnerType.class);
+
+        @JsonCreator
+        public static RunnerType forValue(String value) {
             return enumHelper.forValue(value);
         }
 
@@ -98,5 +121,59 @@ public class Runner {
 
     public void setStatus(RunnerStatus status) {
         this.status = status;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+
+    public Runner withId(Integer id) {
+        this.id = id;
+        return this;
+    }
+
+    public Runner withDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public Runner withActive(Boolean active) {
+        this.active = active;
+        return this;
+    }
+
+    public Runner withIsShared(Boolean isShared) {
+        this.isShared = isShared;
+        return this;
+    }
+
+    public Runner withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public Runner withOnline(Boolean online) {
+        this.online = online;
+        return this;
+    }
+
+    public Runner withStatus(RunnerStatus status) {
+        this.status = status;
+        return this;
+    }
+
+    public Runner withIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

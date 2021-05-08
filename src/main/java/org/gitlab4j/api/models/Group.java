@@ -1,51 +1,50 @@
 
 package org.gitlab4j.api.models;
 
+import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 public class Group {
 
     public class Statistics {
-        private Integer storageSize;
-        private Integer repositorySize;
-        private Integer lfsObjectsSize;
-        private Integer jobArtifactsSize;
+        private Long storageSize;
+        private Long repositorySize;
+        private Long lfsObjectsSize;
+        private Long jobArtifactsSize;
 
-        public Integer getStorageSize() {
+        public Long getStorageSize() {
             return storageSize;
         }
 
-        public void setStorageSize(Integer storageSize) {
+        public void setStorageSize(Long storageSize) {
             this.storageSize = storageSize;
         }
 
-        public Integer getRepositorySize() {
+        public Long getRepositorySize() {
             return repositorySize;
         }
 
-        public void setRepositorySize(Integer repositorySize) {
+        public void setRepositorySize(Long repositorySize) {
             this.repositorySize = repositorySize;
         }
 
-        public Integer getLfsObjectsSize() {
+        public Long getLfsObjectsSize() {
             return lfsObjectsSize;
         }
 
-        public void setLfsObjectsSize(Integer lfsObjectsSize) {
+        public void setLfsObjectsSize(Long lfsObjectsSize) {
             this.lfsObjectsSize = lfsObjectsSize;
         }
 
-        public Integer getJobArtifactsSize() {
+        public Long getJobArtifactsSize() {
             return jobArtifactsSize;
         }
 
-        public void setJobArtifactsSize(Integer jobArtifactsSize) {
+        public void setJobArtifactsSize(Long jobArtifactsSize) {
             this.jobArtifactsSize = jobArtifactsSize;
         }
     }
@@ -67,6 +66,10 @@ public class Group {
     private Statistics statistics;
     private List<Project> projects;
     private List<Project> sharedProjects;
+    private Date createdAt;
+
+    @JsonSerialize(using = JacksonJson.DateOnlySerializer.class)
+    private Date markedForDeletionOn;
 
     public Integer getId() {
         return this.id;
@@ -194,5 +197,106 @@ public class Group {
 
     public void setSharedProjects(List<Project> sharedProjects) {
         this.sharedProjects = sharedProjects;
+    }
+
+    public Date getMarkedForDeletionOn() {
+        return markedForDeletionOn;
+    }
+
+    public void setMarkedForDeletionOn(Date markedForDeletionOn) {
+        this.markedForDeletionOn = markedForDeletionOn;
+    }
+
+    public Date getCreatedAt() {
+	return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+	this.createdAt = createdAt;
+    }
+
+    public Group withId(Integer id) {
+        this.id = id;
+        return this;
+    }
+
+    public Group withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public Group withPath(String path) {
+        this.path = path;
+        return this;
+    }
+
+    public Group withDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public Group withVisibility(Visibility visibility) {
+        this.visibility = visibility;
+        return this;
+    }
+
+    public Group withlfsEnabled(boolean lfsEnabled) {
+        this.lfsEnabled = lfsEnabled;
+        return this;
+    }
+
+    public Group withAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+        return this;
+    }
+
+    public Group withWebUrl(String url) {
+        this.webUrl = url;
+        return this;
+    }
+
+    public Group withRequestAccessEnabled(boolean requestAccessEnabled) {
+        this.requestAccessEnabled = requestAccessEnabled;
+        return this;
+    }
+
+    public Group withFullName(String fullName) {
+        this.fullName = fullName;
+        return this;
+    }
+
+    public Group withFullPath(String fullPath) {
+        this.fullPath = fullPath;
+        return this;
+    }
+
+    public Group withParentId(Integer parentId) {
+        this.parentId = parentId;
+        return this;
+    }
+
+    public Group withSharedRunnersMinutesLimit(Integer minutesLimit) {
+        this.sharedRunnersMinutesLimit = minutesLimit;
+        return this;
+    }
+
+    public Group withStatistics(Statistics statistics) {
+        this.statistics = statistics;
+        return this;
+    }
+
+    public Group withProjects(List<Project> projects) {
+        this.projects = projects;
+        return this;
+    }
+
+    public Group withSharedProjects(List<Project> sharedProjects) {
+        this.sharedProjects = sharedProjects;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

@@ -1,11 +1,15 @@
 package org.gitlab4j.api.models;
 
+import static org.gitlab4j.api.Constants.MergeRequestScope.ALL;
+import static org.gitlab4j.api.Constants.MergeRequestScope.ASSIGNED_TO_ME;
+
 import java.util.Date;
 import java.util.List;
 
 import org.gitlab4j.api.Constants;
 import org.gitlab4j.api.Constants.MergeRequestOrderBy;
 import org.gitlab4j.api.Constants.MergeRequestScope;
+import org.gitlab4j.api.Constants.MergeRequestSearchIn;
 import org.gitlab4j.api.Constants.MergeRequestState;
 import org.gitlab4j.api.Constants.SortOrder;
 import org.gitlab4j.api.GitLabApiForm;
@@ -17,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class MergeRequestFilter {
 
+    private Integer projectId;
+    private List<Integer> iids;
     private MergeRequestState state;
     private MergeRequestOrderBy orderBy;
     private SortOrder sort;
@@ -28,12 +34,44 @@ public class MergeRequestFilter {
     private Date updatedAfter;
     private Date updatedBefore;
     private MergeRequestScope scope;
+
+    /**
+     * Filter MR by created by the given user id. Combine with scope=all or scope=assigned_to_me
+     */
     private Integer authorId;
     private Integer assigneeId;
     private String myReactionEmoji;
     private String sourceBranch;
     private String targetBranch;
     private String search;
+    private MergeRequestSearchIn in;
+    private Boolean wip;
+
+    public Integer getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
+    }
+
+    public MergeRequestFilter withProjectId(Integer projectId) {
+        this.projectId = projectId;
+        return (this);
+    }
+
+    public List<Integer> getIids() {
+        return iids;
+    }
+
+    public void setIids(List<Integer> iids) {
+        this.iids = iids;
+    }
+
+    public MergeRequestFilter withIids(List<Integer> iids) {
+        this.iids = iids;
+        return (this);
+    }
 
     public MergeRequestState getState() {
         return state;
@@ -256,6 +294,32 @@ public class MergeRequestFilter {
         return (this);
     }
     
+    public MergeRequestSearchIn getIn() {
+        return in;
+    }
+
+    public void setIn(MergeRequestSearchIn in) {
+        this.in = in;
+    }
+
+    public MergeRequestFilter withIn(MergeRequestSearchIn in) {
+        this.in = in;
+        return (this);
+    }
+
+    public Boolean getWip() {
+        return wip;
+    }
+
+    public void setWip(Boolean wip) {
+        this.wip = wip;
+    }
+
+    public MergeRequestFilter withWip(Boolean wip) {
+        this.wip = wip;
+        return (this);
+    }
+
     @JsonIgnore
     public GitLabApiForm getQueryParams(int page, int perPage) {
         return (getQueryParams()
@@ -263,24 +327,32 @@ public class MergeRequestFilter {
             .withParam(Constants.PER_PAGE_PARAM, perPage));
     }
 
-    @JsonIgnore 
+    @JsonIgnore
     public GitLabApiForm getQueryParams() {
-        return (new GitLabApiForm()
-            .withParam("state", state)
-            .withParam("order_by", orderBy)
-            .withParam("sort", sort)
-            .withParam("milestone", milestone)
-            .withParam("view", (simpleView != null && simpleView ? "simple" : null))
-            .withParam("labels", labels)
-            .withParam("created_after", createdAfter)
-            .withParam("created_before", createdBefore)
-            .withParam("updated_after", updatedAfter)
-            .withParam("updated_before", updatedBefore) 
-            .withParam("scope", scope)
-            .withParam("assignee_id", assigneeId) 
-            .withParam("my_reaction_emoji", myReactionEmoji)  
-            .withParam("source_branch", sourceBranch)
-            .withParam("target_branch", targetBranch)
-            .withParam("search", search));
+        GitLabApiForm params = new GitLabApiForm()
+                .withParam("iids", iids)
+                .withParam("state", state)
+                .withParam("order_by", orderBy)
+                .withParam("sort", sort)
+                .withParam("milestone", milestone)
+                .withParam("view", (simpleView != null && simpleView ? "simple" : null))
+                .withParam("labels", (labels != null ? String.join(",", labels) : null))
+                .withParam("created_after", createdAfter)
+                .withParam("created_before", createdBefore)
+                .withParam("updated_after", updatedAfter)
+                .withParam("updated_before", updatedBefore)
+                .withParam("scope", scope)
+                .withParam("assignee_id", assigneeId)
+                .withParam("my_reaction_emoji", myReactionEmoji)
+                .withParam("source_branch", sourceBranch)
+                .withParam("target_branch", targetBranch)
+                .withParam("search", search)
+                .withParam("in", in)
+                .withParam("wip", (wip == null ? null : wip ? "yes" : "no"));
+
+        if (authorId != null && (scope == ALL || scope == ASSIGNED_TO_ME)) {
+            params.withParam("author_id", authorId);
+        }
+        return params;
     }
 }

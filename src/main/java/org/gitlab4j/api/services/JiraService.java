@@ -1,13 +1,11 @@
 package org.gitlab4j.api.services;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
+
+import org.gitlab4j.api.GitLabApiForm;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class JiraService extends NotificationService {
 
     public static final String URL_PROP = "url";
@@ -15,11 +13,41 @@ public class JiraService extends NotificationService {
     public static final String PROJECT_KEY_PROP = "project_key";
     public static final String USERNAME_PROP = "username";
     public static final String JIRA_ISSUE_TRANSITION_ID_PROP = "jira_issue_transition_id";
+    public static final String COMMIT_EVENTS_PROP = "commit_events";
 
     private CharSequence password;
 
+    /**
+     * Get the form data for this service based on it's properties.
+     *
+     * @return the form data for this service based on it's properties
+     */
+    @Override
+    public GitLabApiForm servicePropertiesForm() {
+        GitLabApiForm formData = new GitLabApiForm()
+            .withParam("merge_requests_events", getMergeRequestsEvents())
+            .withParam(COMMIT_EVENTS_PROP, getCommitEvents())
+            .withParam(URL_PROP, getUrl(), true)
+            .withParam(API_URL_PROP, getApiUrl())
+            .withParam(PROJECT_KEY_PROP, getProjectKey())
+            .withParam(USERNAME_PROP, getUsername(), true)
+            .withParam("password", getPassword(), true)
+            .withParam(JIRA_ISSUE_TRANSITION_ID_PROP, getJiraIssueTransitionId());
+        return formData;
+    }
+
+    @JsonIgnore
+    public Boolean getCommitEvents() {
+        return (getProperty(COMMIT_EVENTS_PROP, (Boolean) null));
+    }
+
+    public void setCommitEvents(Boolean commitEvents) {
+        setProperty(COMMIT_EVENTS_PROP, commitEvents);
+    }
+
     public JiraService withCommitEvents(Boolean commitEvents) {
-        return withCommitEvents(commitEvents, this);
+        setCommitEvents(commitEvents);
+        return (this);
     }
 
     public JiraService withMergeRequestsEvents(Boolean mergeRequestsEvents) {
@@ -108,5 +136,29 @@ public class JiraService extends NotificationService {
     public JiraService withJiraIssueTransitionId(Integer jiraIssueTransitionId) {
         setJiraIssueTransitionId(jiraIssueTransitionId);
         return (this);
+    }
+
+    @Override
+    public void setProperties(Map<String, Object> properties) {
+        fixJiraIssueTransitionId(properties);
+        super.setProperties(properties);
+    }
+
+    /**
+     * Make sure jiraIssueTransitionId is an integer and not an empty string.
+     * @param properties the Map holding the properties
+     */
+    private void fixJiraIssueTransitionId(Map<String, Object> properties) {
+
+        if (properties != null) {
+            Object jiraIssueTransitionId = properties.get(JIRA_ISSUE_TRANSITION_ID_PROP);
+            if (jiraIssueTransitionId instanceof String) {
+                if (((String)jiraIssueTransitionId).trim().isEmpty()) {
+                    properties.put(JIRA_ISSUE_TRANSITION_ID_PROP, null);
+                } else {
+                    properties.put(JIRA_ISSUE_TRANSITION_ID_PROP, Integer.valueOf((String)jiraIssueTransitionId));
+                }
+            }
+        }
     }
 }

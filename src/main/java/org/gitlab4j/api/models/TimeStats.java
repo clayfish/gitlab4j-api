@@ -1,11 +1,7 @@
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class TimeStats {
 
     private Integer timeEstimate;
@@ -43,5 +39,10 @@ public class TimeStats {
 
     public void setHumanTotalTimeSpent(Duration humanTotalTimeSpent) {
         this.humanTotalTimeSpent = humanTotalTimeSpent;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

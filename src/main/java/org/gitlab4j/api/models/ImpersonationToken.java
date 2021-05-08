@@ -3,21 +3,18 @@ package org.gitlab4j.api.models;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-
+import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.utils.JacksonJsonEnumHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class ImpersonationToken {
 
     /** Enum to specify the scope of an ImpersonationToken. */
     public enum Scope {
 
-        API, READ_USER;
+        API, READ_USER, READ_REPOSITORY, WRITE_REPOSITORY, READ_REGISTRY, SUDO;
 
         private static JacksonJsonEnumHelper<Scope> enumHelper = new JacksonJsonEnumHelper<>(Scope.class);
 
@@ -117,5 +114,10 @@ public class ImpersonationToken {
 
     public void setExpiresAt(Date expiresAt) {
         this.expiresAt = expiresAt;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

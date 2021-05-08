@@ -2,13 +2,9 @@ package org.gitlab4j.api.systemhooks;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class GroupSystemHookEvent implements SystemHookEvent {
+public class GroupSystemHookEvent extends AbstractSystemHookEvent {
     
     public static final String GROUP_CREATE_EVENT = "group_create";
     public static final String GROUP_DESTROY_EVENT = "group_destroy";
@@ -25,7 +21,6 @@ public class GroupSystemHookEvent implements SystemHookEvent {
     private String ownerName;
     private String oldPath;
     private String oldFullPath;
-
 
     public Date getCreatedAt() {
         return createdAt;
@@ -113,5 +108,10 @@ public class GroupSystemHookEvent implements SystemHookEvent {
 
     public void setOldFullPath(String oldFullPath) {
         this.oldFullPath = oldFullPath;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

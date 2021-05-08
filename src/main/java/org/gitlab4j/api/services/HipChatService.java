@@ -1,13 +1,9 @@
 package org.gitlab4j.api.services;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.GitLabApiForm;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class HipChatService extends NotificationService {
 
     public static final String TOKEN_PROP = "token";
@@ -17,7 +13,32 @@ public class HipChatService extends NotificationService {
     public static final String API_VERSION_PROP = "api_version";
     public static final String SERVER_PROP = "server";
     public static final String NOTIFY_ONLY_BROKEN_PIPELINES_PROP = "notify_only_broken_pipelines";
-    
+
+    /**
+     * Get the form data for this service based on it's properties.
+     *
+     * @return the form data for this service based on it's properties
+     */
+    @Override
+    public GitLabApiForm servicePropertiesForm() {
+        GitLabApiForm formData = new GitLabApiForm()
+            .withParam("push_events", getPushEvents())
+            .withParam("issues_events", getIssuesEvents())
+            .withParam("confidential_issues_events", getConfidentialIssuesEvents())
+            .withParam("merge_requests_events", getMergeRequestsEvents())
+            .withParam("tag_push_events", getTagPushEvents())
+            .withParam("note_events", getNoteEvents())
+            .withParam("confidential_note_events", getConfidentialNoteEvents())
+            .withParam("pipeline_events", getPipelineEvents())
+            .withParam("token", getToken(), true)
+            .withParam("color", getColor())
+            .withParam("notify", getNotify())
+            .withParam("room", getRoom())
+            .withParam("api_version", getApiVersion())
+            .withParam("server", getServer())
+            .withParam("notify_only_broken_pipelines", getNotifyOnlyBrokenPipelines());
+        return formData;
+    }
 
     public HipChatService withPushEvents(Boolean pushEvents) {
         return withPushEvents(pushEvents, this);

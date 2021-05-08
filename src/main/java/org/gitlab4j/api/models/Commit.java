@@ -4,12 +4,8 @@ package org.gitlab4j.api.models;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Commit {
 
     private Author author;
@@ -29,6 +25,8 @@ public class Commit {
     private Date timestamp;
     private String title;
     private String url;
+    private String webUrl;
+    private Pipeline lastPipeline;
 
     public Author getAuthor() {
         return author;
@@ -164,5 +162,111 @@ public class Commit {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getWebUrl() {
+        return webUrl;
+    }
+
+    public void setWebUrl(String webUrl) {
+        this.webUrl = webUrl;
+    }
+
+    public Pipeline getLastPipeline() {
+	return lastPipeline;
+    }
+
+    public void setLastPipeline(Pipeline lastPipeline) {
+	this.lastPipeline = lastPipeline;
+    }
+
+    public Commit withAuthor(Author author) {
+        this.author = author;
+        return this;
+    }
+
+    public Commit withAuthoredDate(Date authoredDate) {
+        this.authoredDate = authoredDate;
+        return this;
+    }
+
+    public Commit withAuthorEmail(String authorEmail) {
+        this.authorEmail = authorEmail;
+        return this;
+    }
+
+    public Commit withAuthorName(String authorName) {
+        this.authorName = authorName;
+        return this;
+    }
+
+    public Commit withCommittedDate(Date committedDate) {
+        this.committedDate = committedDate;
+        return this;
+    }
+
+    public Commit withCommitterEmail(String committerEmail) {
+        this.committerEmail = committerEmail;
+        return this;
+    }
+
+    public Commit withCommitterName(String committerName) {
+        this.committerName = committerName;
+        return this;
+    }
+
+    public Commit withCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+
+    public Commit withId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    public Commit withMessage(String message) {
+        this.message = message;
+        return this;
+    }
+
+    public Commit withParentIds(List<String> parentIds) {
+        this.parentIds = parentIds;
+        return this;
+    }
+
+    public Commit withShorwId(String shortId) {
+        this.shortId = shortId;
+        return this;
+    }
+
+    public Commit withStats(CommitStats stats) {
+        this.stats = stats;
+        return this;
+    }
+
+    public Commit withStatus(String status) {
+        this.status = status;
+        return this;
+    }
+
+    public Commit withTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+        return this;
+    }
+
+    public Commit withTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
+    public Commit withUrl(String url) {
+        this.url = url;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

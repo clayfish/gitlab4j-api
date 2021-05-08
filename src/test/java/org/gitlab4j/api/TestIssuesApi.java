@@ -27,25 +27,28 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.assumeNotNull;
 
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.ws.rs.core.Response;
 
 import org.gitlab4j.api.Constants.IssueState;
-import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.models.Duration;
+import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.Issue;
+import org.gitlab4j.api.models.IssueFilter;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.TimeStats;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 /**
  * In order for these tests to run you must set the following properties in ~/test-gitlab4j.properties
@@ -57,26 +60,16 @@ import org.junit.Test;
  * 
  * If any of the above are NULL, all tests in this class will be skipped.
  */
-public class TestIssuesApi {
-
-    // The following needs to be set to your test repository
-    private static final String TEST_NAMESPACE;
-    private static final String TEST_PROJECT_NAME;
-    private static final String TEST_HOST_URL;
-    private static final String TEST_PRIVATE_TOKEN;
-
-    static {
-        TEST_NAMESPACE = TestUtils.getProperty("TEST_NAMESPACE");
-        TEST_PROJECT_NAME = TestUtils.getProperty("TEST_PROJECT_NAME");
-        TEST_HOST_URL = TestUtils.getProperty("TEST_HOST_URL");
-        TEST_PRIVATE_TOKEN = TestUtils.getProperty("TEST_PRIVATE_TOKEN");
-    }
+@Category(IntegrationTest.class)
+public class TestIssuesApi extends AbstractIntegrationTest  {
 
     private static GitLabApi gitLabApi;
     private static Project testProject;
+    private static Group testGroup;
 
     private static final String ISSUE_TITLE = "Test Issue Title";
     private static final String ISSUE_DESCRIPTION = "This is a really nice description, not.";
+    private static final String TEST_GROUP = HelperUtils.getProperty(GROUP_KEY);
     private static Random randomNumberGenerator = new Random();
 
     public TestIssuesApi() {
@@ -86,29 +79,13 @@ public class TestIssuesApi {
     @BeforeClass
     public static void setup() {
 
-        String problems = "";
-        if (TEST_NAMESPACE == null || TEST_NAMESPACE.trim().isEmpty()) {
-            problems += "TEST_NAMESPACE cannot be empty\n";
-        }
+        // Must setup the connection to the GitLab test server and get the test Project instance
+        gitLabApi = baseTestSetup();
+        testProject = getTestProject();
 
-        if (TEST_HOST_URL == null || TEST_HOST_URL.trim().isEmpty()) {
-            problems += "TEST_HOST_URL cannot be empty\n";
-        }
-
-        if (TEST_PRIVATE_TOKEN == null || TEST_PRIVATE_TOKEN.trim().isEmpty()) {
-            problems += "TEST_PRIVATE_TOKEN cannot be empty\n";
-        }
-
-        if (problems.isEmpty()) {
-            gitLabApi = new GitLabApi(ApiVersion.V4, TEST_HOST_URL, TEST_PRIVATE_TOKEN);
-
-            try {
-                testProject = gitLabApi.getProjectApi().getProject(TEST_NAMESPACE, TEST_PROJECT_NAME);
-            } catch (GitLabApiException gle) {
-            }
-
-        } else {
-            System.err.print(problems);
+        if (gitLabApi != null) {
+            Optional<Group> group = gitLabApi.getGroupApi().getOptionalGroup(TEST_GROUP);
+            testGroup = group.get();
         }
 
         deleteAllTestIssues();
@@ -116,7 +93,7 @@ public class TestIssuesApi {
 
     @Before
     public void beforeMethod() {
-        assumeTrue(gitLabApi != null);
+        assumeNotNull(gitLabApi);
     }
 
     @AfterClass
@@ -176,6 +153,13 @@ public class TestIssuesApi {
         }
 
         assertTrue(found);
+    }
+
+    @Test
+    public void testGetGroupIssues() throws GitLabApiException {
+        assumeNotNull(testGroup);
+        List<Issue> issues = gitLabApi.getIssuesApi().getGroupIssues(testGroup);
+        assertNotNull(issues);
     }
 
     @Test
@@ -324,5 +308,28 @@ public class TestIssuesApi {
         TimeStats timeStats = gitLabApi.getIssuesApi().resetSpentTime(issue.getProjectId(), issue.getIid());
 
         assertTimeStats(timeStats, 0, 0);
+    }
+
+    @Test
+    public void testGetIssuesWithOptions() throws GitLabApiException {
+
+        assertNotNull(testProject);
+        Integer projectId = testProject.getId();
+
+        Issue issueOpen = gitLabApi.getIssuesApi().createIssue(projectId, getUniqueTitle(), ISSUE_DESCRIPTION);
+        Issue issueClose = gitLabApi.getIssuesApi().createIssue(projectId, getUniqueTitle(), ISSUE_DESCRIPTION);
+        issueClose = gitLabApi.getIssuesApi().closeIssue(projectId, issueClose.getIid());
+
+        final Integer openIid = issueOpen.getIid();
+        IssueFilter openFilter = new IssueFilter().withState(IssueState.OPENED);
+        List<Issue> opens = gitLabApi.getIssuesApi().getIssues(projectId, openFilter);
+        assertNotNull(opens);
+        assertTrue(opens.stream().map(Issue::getIid).anyMatch(iid -> iid.equals(openIid)));
+
+        final Integer closedIid = issueClose.getIid();
+        IssueFilter closeFilter = new IssueFilter().withState(IssueState.CLOSED);       
+        List<Issue> closes = gitLabApi.getIssuesApi().getIssues(projectId, closeFilter);
+        assertNotNull(closes);
+        assertTrue(closes.stream().map(Issue::getIid).anyMatch(iid -> iid.equals(closedIid)));
     }
 }

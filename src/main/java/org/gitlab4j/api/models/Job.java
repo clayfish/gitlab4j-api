@@ -1,12 +1,10 @@
 package org.gitlab4j.api.models;
 
 import java.util.Date;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+import org.gitlab4j.api.utils.JacksonJson;
+
 public class Job {
 
     private Integer id;
@@ -14,6 +12,7 @@ public class Job {
     private String coverage;
     private Date createdAt;
     private Date finishedAt;
+    private Date artifactsExpireAt;
     private String name;
     private Pipeline pipeline;
     private String ref;
@@ -21,9 +20,16 @@ public class Job {
     private User user;
     private Date startedAt;
     private ArtifactsFile artifactsFile;
+    private List<Artifact> artifacts;
     private Boolean tag;
+    private String webUrl;
     private String stage;
     private JobStatus status;
+    private String when;
+    private Boolean manual;
+    private Boolean allowFailure;
+    private Float duration;
+    private Project project;
 
     public Integer getId() {
         return id;
@@ -55,6 +61,14 @@ public class Job {
 
     public void setFinishedAt(Date finishedAt) {
         this.finishedAt = finishedAt;
+    }
+
+    public Date getArtifactsExpireAt() {
+        return artifactsExpireAt;
+    }
+
+    public void setArtifactsExpireAt(Date artifactsExpireAt) {
+        this.artifactsExpireAt = artifactsExpireAt;
     }
 
     public String getName() {
@@ -105,6 +119,14 @@ public class Job {
         this.tag = tag;
     }
 
+    public String getWebUrl() {
+        return webUrl;
+    }
+
+    public void setWebUrl(String webUrl) {
+        this.webUrl = webUrl;
+    }
+
     public String getStage() {
         return stage;
     }
@@ -137,11 +159,164 @@ public class Job {
         this.artifactsFile = artifactsFile;
     }
 
+    public List<Artifact> getArtifacts() {
+        return artifacts;
+    }
+
+    public void setArtifacts(List<Artifact> artifacts) {
+        this.artifacts = artifacts;
+    }
+
     public Runner getRunner() {
         return runner;
     }
 
     public void setRunner(Runner runner) {
         this.runner = runner;
+    }
+
+    public String getWhen() {
+        return when;
+    }
+
+    public void setWhen(String when) {
+        this.when = when;
+    }
+
+    public Boolean getManual() {
+        return manual;
+    }
+
+    public void setManual(Boolean manual) {
+        this.manual = manual;
+    }
+
+    public Boolean getAllowFailure() {
+        return allowFailure;
+    }
+
+    public void setAllowFailure(Boolean allowFailure) {
+        this.allowFailure = allowFailure;
+    }
+
+    public Float getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Float duration) {
+        this.duration = duration;
+    }
+    
+    public Project getProject() {
+        return project;
+    }
+    
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public Job withId(Integer id) {
+        this.id = id;
+        return this;
+    }
+
+    public Job withCommit(Commit commit) {
+        this.commit = commit;
+        return this;
+    }
+
+    public Job withCoverage(String coverage) {
+        this.coverage = coverage;
+        return this;
+    }
+
+    public Job withCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+
+    public Job withFinishedAt(Date finishedAt) {
+        this.finishedAt = finishedAt;
+        return this;
+    }
+
+    public Job withName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public Job withPipeline(Pipeline pipeline) {
+        this.pipeline = pipeline;
+        return this;
+    }
+
+    public Job withRef(String ref) {
+        this.ref = ref;
+        return this;
+    }
+
+    public Job withRunner(Runner runner) {
+        this.runner = runner;
+        return this;
+    }
+
+    public Job withUser(User user) {
+        this.user = user;
+        return this;
+    }
+
+    public Job withStartedAt(Date startedAt) {
+        this.startedAt = startedAt;
+        return this;
+    }
+
+    public Job withArtifactsFile(ArtifactsFile artifactsFile) {
+        this.artifactsFile = artifactsFile;
+        return this;
+    }
+
+    public Job withTag(Boolean tag) {
+        this.tag = tag;
+        return this;
+    }
+
+    public Job withStage(String stage) {
+        this.stage = stage;
+        return this;
+    }
+
+    public Job withStatus(JobStatus status) {
+        this.status = status;
+        return this;
+    }
+
+    public Job withWhen(String when) {
+        this.when = when;
+        return this;
+    }
+
+    public Job withManual(Boolean manual) {
+        this.manual = manual;
+        return this;
+    }
+
+    public Job withAllowFailure(Boolean allowFailure) {
+        this.allowFailure = allowFailure;
+        return this;
+    }
+    
+    public Job withDuration(Float duration) {
+        this.duration = duration;
+        return this;
+    }
+    
+    public Job withProject(Project project) {
+        this.project = project;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

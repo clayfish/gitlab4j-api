@@ -32,6 +32,10 @@ public class JacksonJsonEnumHelper<E extends Enum<E>> {
     }
 
     public JacksonJsonEnumHelper(Class<E> enumType, boolean firstLetterCapitalized, boolean camelCased) {
+        this(enumType, firstLetterCapitalized, camelCased, false);
+    }
+
+    public JacksonJsonEnumHelper(Class<E> enumType, boolean firstLetterCapitalized, boolean camelCased, boolean preserveUnderscores) {
 
         valuesMap = new HashMap<>();
         namesMap = new HashMap<>();
@@ -42,8 +46,16 @@ public class JacksonJsonEnumHelper<E extends Enum<E>> {
             StringBuilder nameBuf = new StringBuilder(chars.length);
             boolean nextCharIsCapitalized = firstLetterCapitalized;
             for (char ch : chars) {
-                if (ch == '_' && camelCased) {
-                    nextCharIsCapitalized = true;
+                if (ch == '_') {
+                    if (preserveUnderscores) {
+                        nameBuf.append(ch);
+                    } else {
+                        if (camelCased) {
+                            nextCharIsCapitalized = true;
+                        } else {
+                            nameBuf.append(' ');
+                        }
+                    }
                 } else if (nextCharIsCapitalized) {
                     nextCharIsCapitalized = false;
                     nameBuf.append(Character.toUpperCase(ch));

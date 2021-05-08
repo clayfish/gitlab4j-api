@@ -3,20 +3,13 @@ package org.gitlab4j.api.models;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class Member {
+public class Member extends AbstractUser<Member> {
 
     private AccessLevel accessLevel;
-    private Date createdAt;
-    private Integer id;
-    private String name;
-    private String state;
-    private String username;
+    private Date expiresAt;
+    private Identity groupSamlIdentity;
 
     public AccessLevel getAccessLevel() {
         return this.accessLevel;
@@ -26,43 +19,39 @@ public class Member {
         this.accessLevel = accessLevel;
     }
 
-    public Date getCreatedAt() {
-        return this.createdAt;
+    public Date getExpiresAt() {
+        return this.expiresAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public void setExpiresAt(Date expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
-    public Integer getId() {
-        return this.id;
+    public Identity getGroupSamlIdentity() {
+        return groupSamlIdentity;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setGroupSamlIdentity(Identity groupSamlIdentity) {
+        this.groupSamlIdentity = groupSamlIdentity;
     }
 
-    public String getName() {
-        return this.name;
+    public Member withAccessLevel(AccessLevel accessLevel) {
+        this.accessLevel = accessLevel;
+        return this;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Member withExpiresAt(Date expiresAt) {
+        this.expiresAt = expiresAt;
+        return this;
     }
 
-    public String getState() {
-        return this.state;
+    public Member withGroupSamlIdentity(Identity groupSamlIdentity) {
+        this.groupSamlIdentity = groupSamlIdentity;
+        return this;
     }
 
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getUsername() {
-        return this.username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -16,12 +18,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * <p>This class defines an Iterator implementation that is used as a paging iterator for all API methods that 
+ * <p>This class defines an Iterator implementation that is used as a paging iterator for all API methods that
  * return a List of objects.  It hides the details of interacting with the GitLab API when paging is involved
  * simplifying accessing large lists of objects.</p>
- * 
+ *
  * <p>Example usage:</p>
- *  
+ *
  * <pre>
  *   // Get a Pager instance that will page through the projects with 10 projects per page
  *   Pager&lt;Project&gt; projectPager = gitlabApi.getProjectsApi().getProjectsPager(10);
@@ -33,8 +35,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *           System.out.println(project.getName() + " : " + project.getDescription());
  *       }
  *   }
- * </pre> 
- * 
+ * </pre>
+ *
  * @param <T> the GitLab4J type contained in the List.
  */
 public class Pager<T> implements Iterator<List<T>>, Constants {
@@ -43,9 +45,11 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     private int totalPages;
     private int totalItems;
     private int currentPage;
+    private int kaminariNextPage;
 
     private List<String> pageParam = new ArrayList<>(1);
     private List<T> currentItems;
+    private Stream<T> pagerStream = null;
 
     private AbstractApi api;
     private MultivaluedMap<String, String> queryParams;
@@ -57,7 +61,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
     /**
      * Creates a Pager instance to access the API through the specified path and query parameters.
-     * 
+     *
      * @param api the AbstractApi implementation to communicate through
      * @param type the GitLab4J type that will be contained in the List
      * @param itemsPerPage items per page
@@ -68,6 +72,10 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     Pager(AbstractApi api, Class<T> type, int itemsPerPage, MultivaluedMap<String, String> queryParams, Object... pathArgs) throws GitLabApiException {
 
         javaType = mapper.getTypeFactory().constructCollectionType(List.class, type);
+
+        if (itemsPerPage < 1) {
+            itemsPerPage = api.getDefaultPerPage();
+        }
 
         // Make sure the per_page parameter is present
         if (queryParams == null) {
@@ -85,32 +93,78 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
         try {
             currentItems = mapper.readValue((InputStream) response.getEntity(), javaType);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new GitLabApiException(e);
+        }
+
+        if (currentItems == null) {
+            throw new GitLabApiException("Invalid response from from GitLab server");
         }
 
         this.api = api;
         this.queryParams = queryParams;
         this.pathArgs = pathArgs;
-        this.itemsPerPage = getHeaderValue(response, PER_PAGE);
-        totalPages = getHeaderValue(response, TOTAL_PAGES_HEADER);
-        totalItems = getHeaderValue(response, TOTAL_HEADER);
+        this.itemsPerPage = getIntHeaderValue(response, PER_PAGE);
+
+        // Some API endpoints do not return the "X-Per-Page" header when there is only 1 page, check for that condition and act accordingly
+        if (this.itemsPerPage == -1) {
+            this.itemsPerPage = itemsPerPage;
+            totalPages = 1;
+            totalItems = currentItems.size();
+            return;
+        }
+
+        totalPages = getIntHeaderValue(response, TOTAL_PAGES_HEADER);
+        totalItems = getIntHeaderValue(response, TOTAL_HEADER);
+
+        // Since GitLab 11.8 and behind the api_kaminari_count_with_limit feature flag,
+        // if the number of resources is more than 10,000, the X-Total and X-Total-Page
+        // headers as well as the rel="last" Link are not present in the response headers.
+        if (totalPages == -1 || totalItems == -1) {
+
+            int nextPage = getIntHeaderValue(response, NEXT_PAGE_HEADER);
+            if (nextPage < 2) {
+                totalPages = 1;
+                totalItems = currentItems.size();
+            } else {
+                kaminariNextPage = 2;
+            }
+        }
+     }
+
+    /**
+     * Get the specified header value from the Response instance.
+     *
+     * @param response the Response instance to get the value from
+     * @param key the HTTP header key to get the value for
+     * @return the specified header value from the Response instance, or null if the header is not present
+     * @throws GitLabApiException if any error occurs
+     */
+    private String getHeaderValue(Response response, String key) throws GitLabApiException {
+
+        String value = response.getHeaderString(key);
+        value = (value != null ? value.trim() : null);
+        if (value == null || value.length() == 0) {
+            return (null);
+        }
+
+        return (value);
     }
 
     /**
      * Get the specified integer header value from the Response instance.
-     * 
+     *
      * @param response the Response instance to get the value from
      * @param key the HTTP header key to get the value for
-     * @return the specified integer header value from the Response instance
+     * @return the specified integer header value from the Response instance, or -1 if the header is not present
      * @throws GitLabApiException if any error occurs
      */
-    private int getHeaderValue(Response response, String key) throws GitLabApiException {
+    private int getIntHeaderValue(Response response, String key) throws GitLabApiException {
 
-        String value = response.getHeaderString(key);
-        value = (value != null ? value.trim() : null);
-        if (value == null || value.length() == 0)
-            throw new GitLabApiException("Missing '" + key + "' header from server");
+        String value = getHeaderValue(response, key);
+        if (value == null) {
+            return -1;
+        }
 
         try {
             return (Integer.parseInt(value));
@@ -121,7 +175,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
     /**
      * Sets the "page" query parameter.
-     * 
+     *
      * @param page the value for the "page" query parameter
      */
     private void setPageParam(int page) {
@@ -141,7 +195,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     /**
      * Get the total number of pages returned by the GitLab API.
      *
-     * @return the total number of pages returned by the GitLab API
+     * @return the total number of pages returned by the GitLab API, or -1 if the Kaminari limit of 10,000 has been exceeded
      */
     public int getTotalPages() {
         return (totalPages);
@@ -150,7 +204,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     /**
      * Get the total number of items (T instances) returned by the GitLab API.
      *
-     * @return the total number of items (T instances) returned by the GitLab API
+     * @return the total number of items (T instances) returned by the GitLab API, or -1 if the Kaminari limit of 10,000 has been exceeded
      */
     public int getTotalItems() {
         return (totalItems);
@@ -172,7 +226,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      */
     @Override
     public boolean hasNext() {
-        return (currentPage < totalPages);
+        return (currentPage < totalPages || currentPage < kaminariNextPage);
     }
 
     /**
@@ -189,7 +243,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
     /**
      * This method is not implemented and will throw an UnsupportedOperationException if called.
-     * 
+     *
      * @throws UnsupportedOperationException when invoked
      */
     @Override
@@ -214,6 +268,11 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @throws GitLabApiException if any error occurs
      */
     public List<T> last() throws GitLabApiException {
+
+        if (kaminariNextPage != 0) {
+            throw new GitLabApiException("Kaminari count limit exceeded, unable to fetch last page");
+        }
+
         return (page(totalPages));
     }
 
@@ -247,7 +306,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      */
     public List<T> page(int pageNumber) {
 
-        if (pageNumber > totalPages) {
+        if (pageNumber > totalPages && pageNumber > kaminariNextPage) {
             throw new NoSuchElementException();
         } else if (pageNumber < 1) {
             throw new NoSuchElementException();
@@ -268,10 +327,96 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             Response response = api.get(Response.Status.OK, queryParams, pathArgs);
             currentItems = mapper.readValue((InputStream) response.getEntity(), javaType);
             currentPage = pageNumber;
+
+            if (kaminariNextPage > 0) {
+                kaminariNextPage = getIntHeaderValue(response, NEXT_PAGE_HEADER);
+            }
+
             return (currentItems);
 
         } catch (GitLabApiException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Gets all the items from each page as a single List instance.
+     *
+     * @return all the items from each page as a single List instance
+     * @throws GitLabApiException if any error occurs
+     */
+    public List<T> all() throws GitLabApiException {
+
+        // Make sure that current page is 0, this will ensure the whole list is fetched
+        // regardless of what page the instance is currently on.
+        currentPage = 0;
+        List<T> allItems = new ArrayList<>(Math.max(totalItems, 0));
+
+        // Iterate through the pages and append each page of items to the list
+        while (hasNext()) {
+            allItems.addAll(next());
+        }
+
+        return (allItems);
+    }
+
+    /**
+     * Builds and returns a Stream instance which is pre-populated with all items from all pages.
+     *
+     * @return a Stream instance which is pre-populated with all items from all pages
+     * @throws IllegalStateException if Stream has already been issued
+     * @throws GitLabApiException if any other error occurs
+     */
+    public Stream<T> stream() throws GitLabApiException, IllegalStateException {
+
+        if (pagerStream == null) {
+            synchronized (this) {
+                if (pagerStream == null) {
+
+                    // Make sure that current page is 0, this will ensure the whole list is streamed
+                    // regardless of what page the instance is currently on.
+                    currentPage = 0;
+
+                    // Create a Stream.Builder to contain all the items. This is more efficient than
+                    // getting a List with all() and streaming that List
+                    Stream.Builder<T> streamBuilder = Stream.builder();
+
+                    // Iterate through the pages and append each page of items to the stream builder
+                    while (hasNext()) {
+                        next().forEach(streamBuilder);
+                    }
+
+                    pagerStream = streamBuilder.build();
+                    return (pagerStream);
+                }
+            }
+        }
+
+        throw new IllegalStateException("Stream already issued");
+    }
+
+    /**
+     * Creates a Stream instance for lazily streaming items from the GitLab server.
+     *
+     * @return a Stream instance for lazily streaming items from the GitLab server
+     * @throws IllegalStateException if Stream has already been issued
+     */
+    public Stream<T> lazyStream() throws IllegalStateException {
+
+        if (pagerStream == null) {
+            synchronized (this) {
+                if (pagerStream == null) {
+
+                    // Make sure that current page is 0, this will ensure the whole list is streamed
+                    // regardless of what page the instance is currently on.
+                    currentPage = 0;
+
+                    pagerStream = StreamSupport.stream(new PagerSpliterator<T>(this), false);
+                    return (pagerStream);
+                }
+            }
+        }
+
+        throw new IllegalStateException("Stream already issued");
     }
 }

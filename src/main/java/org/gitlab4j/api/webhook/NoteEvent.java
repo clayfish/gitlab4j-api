@@ -2,18 +2,15 @@ package org.gitlab4j.api.webhook;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-
 import org.gitlab4j.api.models.Diff;
 import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.utils.JacksonJsonEnumHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-@XmlAccessorType(XmlAccessType.FIELD)
-public class NoteEvent implements Event {
+public class NoteEvent extends AbstractEvent {
 
     public static final String X_GITLAB_EVENT = "Note Hook";
     public static final String OBJECT_KIND = "note";
@@ -130,11 +127,12 @@ public class NoteEvent implements Event {
         }
     }
 
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static class ObjectAttributes {
 
         private Integer id;
         private String note;
+        private String discussionId;
+        private String type;
         private NoteableType noteableType;
         private Integer authorId;
         private Date createdAt;
@@ -162,6 +160,22 @@ public class NoteEvent implements Event {
 
         public void setNote(String note) {
             this.note = note;
+        }
+
+        public String getDiscussionId() {
+            return discussionId;
+        }
+
+        public void setDiscussionId(String discussionId) {
+            this.discussionId = discussionId;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
         }
 
         public NoteableType getNoteableType() {
@@ -259,5 +273,10 @@ public class NoteEvent implements Event {
         public void setUrl(String url) {
             this.url = url;
         }
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

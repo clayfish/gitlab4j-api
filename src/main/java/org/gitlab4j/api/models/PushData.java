@@ -1,30 +1,40 @@
 
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.gitlab4j.api.Constants.ActionType;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class PushData {
 
-    private Integer commit_count;
+    private Integer commitCount;
     private ActionType action;
     private String refType;
     private String commitFrom;
     private String commitTo;
     private String ref;
+    private String commitTitle;
 
+    @Deprecated
+    @JsonIgnore
     public Integer getCommit_count() {
-        return commit_count;
+        return commitCount;
     }
 
+    @Deprecated
+    @JsonIgnore
     public void setCommit_count(Integer commit_count) {
-        this.commit_count = commit_count;
+        this.commitCount = commit_count;
     }
+
+    public Integer getCommitCount() {
+        return commitCount;
+    }
+
+    public void setCommitCount(Integer commit_count) {
+        this.commitCount = commit_count;
+    }   
 
     public ActionType getAction() {
         return action;
@@ -64,5 +74,18 @@ public class PushData {
 
     public void setRef(String ref) {
         this.ref = ref;
+    }
+
+    public String getCommitTitle() {
+        return commitTitle;
+    }
+
+    public void setCommitTitle(String commitTitle) {
+        this.commitTitle = commitTitle;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

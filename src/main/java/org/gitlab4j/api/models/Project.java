@@ -4,17 +4,17 @@ package org.gitlab4j.api.models;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import org.gitlab4j.api.Constants.AutoDevopsDeployStrategy;
+import org.gitlab4j.api.Constants.BuildGitStrategy;
+import org.gitlab4j.api.ProjectLicense;
+import org.gitlab4j.api.models.ImportStatus.Status;
+import org.gitlab4j.api.utils.JacksonJson;
 import org.gitlab4j.api.utils.JacksonJsonEnumHelper;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Project {
 
     // Enum for the merge_method of the Project instance.
@@ -85,7 +85,28 @@ public class Project {
     private String webUrl;
     private Boolean wikiEnabled;
     private Boolean printingMergeRequestLinkEnabled;
+    private Boolean resolveOutdatedDiffDiscussions;
     private ProjectStatistics statistics;
+    private Boolean initializeWithReadme;
+    private Boolean packagesEnabled;
+    private Boolean emptyRepo;
+    private String licenseUrl;
+    private ProjectLicense license;
+    private List<CustomAttribute> customAttributes;
+    private String buildCoverageRegex;
+    private BuildGitStrategy buildGitStrategy;
+    private String readmeUrl;
+    private Boolean canCreateMergeRequestIn;
+    private Status importStatus;
+    private Integer ciDefaultGitDepth;
+    private Boolean removeSourceBranchAfterMerge;
+    private Boolean autoDevopsEnabled;
+    private AutoDevopsDeployStrategy autoDevopsDeployStrategy;
+    private Boolean autocloseReferencedIssues;
+    private Boolean emailsDisabled;
+
+    @JsonSerialize(using = JacksonJson.DateOnlySerializer.class)
+    private Date markedForDeletionOn;
 
     public Integer getApprovalsBeforeMerge() {
         return approvalsBeforeMerge;
@@ -593,6 +614,45 @@ public class Project {
         return (this);
     }
 
+    public Boolean getResolveOutdatedDiffDiscussions() {
+        return resolveOutdatedDiffDiscussions;
+    }
+
+    public void setResolveOutdatedDiffDiscussions(Boolean resolveOutdatedDiffDiscussions) {
+        this.resolveOutdatedDiffDiscussions = resolveOutdatedDiffDiscussions;
+    }
+
+    public Project withResolveOutdatedDiffDiscussions(boolean resolveOutdatedDiffDiscussions) {
+        this.resolveOutdatedDiffDiscussions = resolveOutdatedDiffDiscussions;
+        return (this);
+    }
+
+    public Boolean getInitializeWithReadme() {
+        return initializeWithReadme;
+    }
+
+    public void setInitializeWithReadme(Boolean initializeWithReadme) {
+        this.initializeWithReadme = initializeWithReadme;
+    }
+
+    public Project withInitializeWithReadme(boolean initializeWithReadme) {
+        this.initializeWithReadme = initializeWithReadme;
+        return (this);
+    }
+
+    public Boolean getPackagesEnabled() {
+        return packagesEnabled;
+    }
+
+    public void setPackagesEnabled(Boolean packagesEnabled) {
+        this.packagesEnabled = packagesEnabled;
+    }
+
+    public Project withPackagesEnabled(Boolean packagesEnabled) {
+        this.packagesEnabled = packagesEnabled;
+        return (this);
+    }
+
     public ProjectStatistics getStatistics() {
         return statistics;
     }
@@ -601,8 +661,166 @@ public class Project {
         this.statistics = statistics;
     }
 
+    public Boolean getEmptyRepo() {
+        return emptyRepo;
+    }
+
+    public void setEmptyRepo(Boolean emptyRepo) {
+        this.emptyRepo = emptyRepo;
+    }
+
+    public Date getMarkedForDeletionOn() {
+        return markedForDeletionOn;
+    }
+
+    public void setMarkedForDeletionOn(Date markedForDeletionOn) {
+        this.markedForDeletionOn = markedForDeletionOn;
+    }
+
+    public String getLicenseUrl() {
+        return licenseUrl;
+    }
+
+    public void setLicenseUrl(String licenseUrl) {
+        this.licenseUrl = licenseUrl;
+    }
+
+    public ProjectLicense getLicense() {
+        return license;
+    }
+
+    public void setLicense(ProjectLicense license) {
+        this.license = license;
+    }
+
+    public List<CustomAttribute> getCustomAttributes() {
+        return customAttributes;
+    }
+
+    public void setCustomAttributes(List<CustomAttribute> customAttributes) {
+        this.customAttributes = customAttributes;
+    }
+
     public static final boolean isValid(Project project) {
         return (project != null && project.getId() != null);
     }
 
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
+    }
+
+    /**
+     * Formats a fully qualified project path based on the provided namespace and project path.
+     *
+     * @param namespace the namespace, either a user name or group name
+     * @param path the project path
+     * @return a fully qualified project path based on the provided namespace and project path
+     */
+    public static final String getPathWithNammespace(String namespace, String path) {
+        return (namespace.trim() + "/" + path.trim());
+    }
+
+    public String getBuildCoverageRegex() {
+        return buildCoverageRegex;
+    }
+
+    public void setBuildCoverageRegex(String buildCoverageRegex) {
+        this.buildCoverageRegex = buildCoverageRegex;
+    }
+
+    public Project withBuildCoverageRegex(String buildCoverageRegex) {
+        this.buildCoverageRegex = buildCoverageRegex;
+        return this;
+    }
+
+    public BuildGitStrategy getBuildGitStrategy() {
+        return buildGitStrategy;
+    }
+
+    public void setBuildGitStrategy(BuildGitStrategy buildGitStrategy) {
+        this.buildGitStrategy = buildGitStrategy;
+    }
+
+    public Project withBuildGitStrategy(BuildGitStrategy buildGitStrategy) {
+        this.buildGitStrategy = buildGitStrategy;
+        return this;
+    }
+
+    public String getReadmeUrl() {
+        return readmeUrl;
+    }
+
+    public void setReadmeUrl(String readmeUrl) {
+        this.readmeUrl = readmeUrl;
+    }
+
+    public Boolean getCanCreateMergeRequestIn() {
+        return canCreateMergeRequestIn;
+    }
+
+    public void setCanCreateMergeRequestIn(Boolean canCreateMergeRequestIn) {
+        this.canCreateMergeRequestIn = canCreateMergeRequestIn;
+    }
+
+    public Status getImportStatus() {
+        return importStatus;
+    }
+
+    public void setImportStatus(Status importStatus) {
+        this.importStatus = importStatus;
+    }
+
+    public Integer getCiDefaultGitDepth() {
+        return ciDefaultGitDepth;
+    }
+
+    public void setCiDefaultGitDepth(Integer ciDefaultGitDepth) {
+        this.ciDefaultGitDepth = ciDefaultGitDepth;
+    }
+
+    public Boolean getRemoveSourceBranchAfterMerge() {
+        return removeSourceBranchAfterMerge;
+    }
+
+    public void setRemoveSourceBranchAfterMerge(Boolean removeSourceBranchAfterMerge) {
+        this.removeSourceBranchAfterMerge = removeSourceBranchAfterMerge;
+    }
+
+    public Boolean getAutoDevopsEnabled() {
+        return autoDevopsEnabled;
+    }
+
+    public void setAutoDevopsEnabled(Boolean autoDevopsEnabled) {
+        this.autoDevopsEnabled = autoDevopsEnabled;
+    }
+
+    public AutoDevopsDeployStrategy getAutoDevopsDeployStrategy() {
+        return autoDevopsDeployStrategy;
+    }
+
+    public void setAutoDevopsDeployStrategy(AutoDevopsDeployStrategy autoDevopsDeployStrategy) {
+        this.autoDevopsDeployStrategy = autoDevopsDeployStrategy;
+    }
+
+    public Boolean getAutocloseReferencedIssues() {
+        return autocloseReferencedIssues;
+    }
+
+    public void setAutocloseReferencedIssues(Boolean autocloseReferencedIssues) {
+        this.autocloseReferencedIssues = autocloseReferencedIssues;
+    }
+
+    public Boolean getEmailsDisabled() {
+        return emailsDisabled;
+    }
+
+    public void setEmailsDisabled(Boolean emailsDisabled) {
+        this.emailsDisabled = emailsDisabled;
+    }
+
+    public Project withEmailsDisabled(Boolean emailsDisabled) {
+        this.emailsDisabled = emailsDisabled;
+        return this;
+    }
 }

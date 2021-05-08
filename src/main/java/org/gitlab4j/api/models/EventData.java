@@ -3,12 +3,8 @@ package org.gitlab4j.api.models;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class EventData {
 
     private String after;
@@ -82,5 +78,51 @@ public class EventData {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+
+    public EventData withAfter(String after) {
+        this.after = after;
+        return this;
+    }
+
+    public EventData withBefore(String before) {
+        this.before = before;
+        return this;
+    }
+
+    public EventData withCommits(List<Commit> commits) {
+        this.commits = commits;
+        return this;
+    }
+
+    public EventData withRef(String ref) {
+        this.ref = ref;
+        return this;
+    }
+
+    public EventData withRepository(Repository repository) {
+        this.repository = repository;
+        return this;
+    }
+
+    public EventData withTotalCommitsCount(Integer totalCommitsCount) {
+        this.totalCommitsCount = totalCommitsCount;
+        return this;
+    }
+
+    public EventData withUserId(Integer userId) {
+        this.userId = userId;
+        return this;
+    }
+
+    public EventData withUserName(String userName) {
+        this.userName = userName;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

@@ -3,14 +3,12 @@ package org.gitlab4j.api.webhook;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-
-import org.gitlab4j.api.models.ArtifactsFile;
+import org.gitlab4j.api.models.Job;
 import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.models.Variable;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
-public class PipelineEvent implements Event {
+public class PipelineEvent extends AbstractEvent {
 
     public static final String X_GITLAB_EVENT = "Pipeline Hook";
     public static final String OBJECT_KIND = "pipeline";
@@ -19,7 +17,7 @@ public class PipelineEvent implements Event {
     private User user;
     private EventProject project;
     private EventCommit commit;
-    private List<Build> builds;
+    private List<Job> jobs;
 
     public String getObjectKind() {
         return (OBJECT_KIND);
@@ -62,119 +60,14 @@ public class PipelineEvent implements Event {
         this.commit = commit;
     }
 
-    public List<Build> getBuilds() {
-        return builds;
+    public List<Job> getJobs() {
+        return jobs;
     }
 
-    public void setBuilds(List<Build> builds) {
-        this.builds = builds;
+    public void setJobs(List<Job> jobs) {
+        this.jobs = jobs;
     }
 
-    @XmlAccessorType(XmlAccessType.FIELD)
-    public static class Build {
-
-        private Integer id;
-        private String stage;
-        private String name;
-        private String status;
-        private Date createdAt;
-        private Date startedAt;
-        private Date finishedAt;
-        private String when;
-        private Boolean manual;
-        private User user;
-        private ArtifactsFile artifactsFile;
-
-        public Integer getId() {
-            return id;
-        }
-
-        public void setId(Integer id) {
-            this.id = id;
-        }
-
-        public String getStage() {
-            return stage;
-        }
-
-        public void setStage(String stage) {
-            this.stage = stage;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
-
-        public Date getCreatedAt() {
-            return createdAt;
-        }
-
-        public void setCreatedAt(Date createdAt) {
-            this.createdAt = createdAt;
-        }
-
-        public Date getStartedAt() {
-            return startedAt;
-        }
-
-        public void setStartedAt(Date startedAt) {
-            this.startedAt = startedAt;
-        }
-
-        public Date getFinishedAt() {
-            return finishedAt;
-        }
-
-        public void setFinishedAt(Date finishedAt) {
-            this.finishedAt = finishedAt;
-        }
-
-        public String getWhen() {
-            return when;
-        }
-
-        public void setWhen(String when) {
-            this.when = when;
-        }
-
-        public Boolean getManual() {
-            return manual;
-        }
-
-        public void setManual(Boolean manual) {
-            this.manual = manual;
-        }
-
-        public User getUser() {
-            return user;
-        }
-
-        public void setUser(User user) {
-            this.user = user;
-        }
-
-        public ArtifactsFile getArtifactsFile() {
-            return artifactsFile;
-        }
-
-        public void setArtifactsFile(ArtifactsFile artifactsFile) {
-            this.artifactsFile = artifactsFile;
-        }
-    }
-
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static class ObjectAttributes {
 
         private Integer id;
@@ -182,11 +75,13 @@ public class PipelineEvent implements Event {
         private Boolean tag;
         private String sha;
         private String beforeSha;
+        private String source;
         private String status;
         private List<String> stages;
         private Date createdAt;
         private Date finishedAt;
         private Integer duration;
+        private List<Variable> variables;
 
         public Integer getId() {
             return id;
@@ -228,6 +123,14 @@ public class PipelineEvent implements Event {
             this.beforeSha = beforeSha;
         }
 
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
+        }
+
         public String getStatus() {
             return status;
         }
@@ -267,5 +170,18 @@ public class PipelineEvent implements Event {
         public void setDuration(Integer duration) {
             this.duration = duration;
         }
+
+        public List<Variable> getVariables() {
+            return variables;
+        }
+
+        public void setVariables(List<Variable> variables) {
+            this.variables = variables;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

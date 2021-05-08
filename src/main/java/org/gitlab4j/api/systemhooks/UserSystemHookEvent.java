@@ -2,17 +2,14 @@ package org.gitlab4j.api.systemhooks;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class UserSystemHookEvent implements SystemHookEvent {
+public class UserSystemHookEvent extends AbstractSystemHookEvent {
     
     public static final String USER_CREATE_EVENT = "user_create";
     public static final String USER_DESTROY_EVENT = "user_destroy";
     public static final String USER_RENAME_EVENT = "user_rename";
+    public static final String USER_FAILED_LOGIN_EVENT = "user_failed_login";
 
     private String eventName;
     private Date createdAt;
@@ -22,6 +19,7 @@ public class UserSystemHookEvent implements SystemHookEvent {
     private String username;
     private Integer userId;
     private String oldUsername;
+    private String state;
 
     public String getEventName() {
         return this.eventName;
@@ -85,5 +83,18 @@ public class UserSystemHookEvent implements SystemHookEvent {
 
     public void setOldUsername(String oldUsername) {
         this.oldUsername = oldUsername;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

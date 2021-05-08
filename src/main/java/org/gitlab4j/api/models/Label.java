@@ -1,11 +1,10 @@
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.GitLabApiForm;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Label {
 
     private Integer id;
@@ -15,7 +14,7 @@ public class Label {
     private Integer openIssuesCount;
     private Integer closedIssuesCount;
     private Integer openMergeRequestsCount;
-    private boolean subscribed;
+    private Boolean subscribed;
     private Integer priority;
 
     public Integer getId() {
@@ -34,6 +33,11 @@ public class Label {
         this.name = name;
     }
 
+    public Label withName(String name) {
+        this.name = name;
+        return (this);
+    }
+
     public String getColor() {
         return color;
     }
@@ -42,12 +46,22 @@ public class Label {
         this.color = color;
     }
 
+    public Label withColor(String color) {
+        this.color = color;
+        return (this);
+    }
+
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Label withDescription(String description) {
+        this.description = description;
+        return (this);
     }
 
     public Integer getOpenIssuesCount() {
@@ -74,11 +88,11 @@ public class Label {
         this.openMergeRequestsCount = openMergeRequestsCount;
     }
 
-    public boolean isSubscribed() {
+    public Boolean isSubscribed() {
         return subscribed;
     }
 
-    public void setSubscribed(boolean subscribed) {
+    public void setSubscribed(Boolean subscribed) {
         this.subscribed = subscribed;
     }
 
@@ -88,5 +102,37 @@ public class Label {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public Label withPriority(Integer priority) {
+        this.priority = priority;
+        return (this);
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
+    }
+
+    /**
+     * Get the form params specified by this instance.
+     *
+     * @param isCreate set to true if the params are for a create label call, false for an update
+     * @return a GitLabApiForm instance holding the form parameters for this LabelParams instance
+     */
+    @JsonIgnore
+    public GitLabApiForm getForm(boolean isCreate) {
+	GitLabApiForm form = new GitLabApiForm()
+            .withParam("description", description)
+            .withParam("color", color, isCreate)
+            .withParam("priority", priority);
+
+	if (isCreate) {
+	    form.withParam("name", name, true);
+	} else {
+	    form.withParam("new_name", name);
+	}
+
+	return (form);
     }
 }

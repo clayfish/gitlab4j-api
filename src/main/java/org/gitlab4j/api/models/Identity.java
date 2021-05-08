@@ -1,13 +1,12 @@
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class Identity {
 
     private String provider;
     private String externUid;
+    private Integer samlProviderId;
 
     public String getProvider() {
         return provider;
@@ -23,5 +22,18 @@ public class Identity {
 
     public void setExternUid(String externUid) {
         this.externUid = externUid;
+    }
+
+    public Integer getSamlProviderId() {
+	return samlProviderId;
+    }
+
+    public void setSamlProviderId(Integer samlProviderId) {
+	this.samlProviderId = samlProviderId;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

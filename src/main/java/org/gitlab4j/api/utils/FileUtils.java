@@ -1,10 +1,16 @@
 package org.gitlab4j.api.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.util.Base64;
 import java.util.Scanner;
 
 import javax.ws.rs.core.Response;
+
+import org.gitlab4j.api.Constants.Encoding;
 
 /**
  * This class provides static utility methods used throughout GitLab4J.
@@ -74,5 +80,47 @@ public class FileUtils {
             in.useDelimiter("\\Z");
             return (in.next());
         }       
+    }
+
+    /**
+     * Reads the content of a Reader instance and returns it as a String.
+     *
+     * @param reader the Reader instance to read the content from
+     * @return the content of a Reader instance as a String
+     * @throws IOException if any error occurs
+     */
+    public static String getReaderContentAsString(Reader reader) throws IOException {
+
+        int count;
+        final char[] buffer = new char[2048];
+        final StringBuilder out = new StringBuilder();
+        while ((count = reader.read(buffer, 0, buffer.length)) >= 0) {
+            out.append(buffer, 0, count);
+        }
+
+        return (out.toString());
+    }
+
+    /**
+     * Reads the content of a File instance and returns it as a String of either text or base64 encoded text.
+     *
+     * @param file the File instance to read from
+     * @param encoding whether to encode as Base64 or as Text, defaults to Text if null
+     * @return the content of the File as a String
+     * @throws IOException if any error occurs
+     */
+    public static String getFileContentAsString(File file, Encoding encoding) throws IOException {
+
+        if (encoding == Encoding.BASE64) {
+
+            try (FileInputStream stream = new FileInputStream(file)) {
+                byte data[] = new byte[(int) file.length()];
+                stream.read(data);
+                return (Base64.getEncoder().encodeToString(data));
+            }
+
+        } else {
+            return(new String (Files.readAllBytes(file.toPath())));
+        }
     }
 }

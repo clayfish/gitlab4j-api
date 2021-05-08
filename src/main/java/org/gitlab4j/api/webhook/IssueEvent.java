@@ -1,13 +1,12 @@
 package org.gitlab4j.api.webhook;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import java.util.List;
 
 import org.gitlab4j.api.models.Assignee;
 import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
-public class IssueEvent implements Event {
+public class IssueEvent extends AbstractEvent {
 
     public static final String X_GITLAB_EVENT = "Issue Hook";
     public static final String OBJECT_KIND = "issue";
@@ -16,7 +15,10 @@ public class IssueEvent implements Event {
     private EventProject project;
     private EventRepository repository;
     private ObjectAttributes objectAttributes;
+    private List<Assignee> assignees;
     private Assignee assignee;
+    private List<EventLabel> labels;
+    private IssueChanges changes;
 
     public String getObjectKind() {
         return (OBJECT_KIND);
@@ -51,12 +53,36 @@ public class IssueEvent implements Event {
         this.repository = repository;
     }
 
+    public List<Assignee> getAssignees() {
+        return assignees;
+    }
+
+    public void setAssignees(List<Assignee> assignees) {
+        this.assignees = assignees;
+    }
+
     public Assignee getAssignee() {
         return assignee;
     }
 
     public void setAssignee(Assignee assignee) {
         this.assignee = assignee;
+    }
+
+    public List<EventLabel> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(List<EventLabel> labels) {
+        this.labels = labels;
+    }
+
+    public IssueChanges getChanges() {
+        return changes;
+    }
+
+    public void setChanges(IssueChanges changes) {
+        this.changes = changes;
     }
 
     public ObjectAttributes getObjectAttributes() {
@@ -68,5 +94,10 @@ public class IssueEvent implements Event {
     }
 
     public static class ObjectAttributes extends EventIssue {
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

@@ -1,13 +1,12 @@
 package org.gitlab4j.api.models;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public class ProjectSharedGroup {
- 
+
     private Integer groupId;
     private String groupName;
+    private String groupFullPath;
     private AccessLevel groupAccessLevel;
 
     public int getGroupId() {
@@ -32,5 +31,18 @@ public class ProjectSharedGroup {
 
     public void setGroupAccessLevel(AccessLevel accessLevel) {
         this.groupAccessLevel = accessLevel;
+    }
+
+    public String getGroupFullPath() {
+        return groupFullPath;
+    }
+
+    public void setGroupFullPath(String groupFullPath) {
+        this.groupFullPath = groupFullPath;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

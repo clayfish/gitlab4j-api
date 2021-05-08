@@ -4,24 +4,45 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import org.gitlab4j.api.GitLabApiForm;
+import org.gitlab4j.api.utils.JacksonJson;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@XmlAccessorType(XmlAccessType.FIELD)
 public abstract class NotificationService {
+
+    public static final String NOTIFY_ONLY_BROKEN_PIPELINES_PROP = "notify_only_broken_pipelines";
+    public static final String NOTIFY_ONLY_DEFAULT_BRANCH_PROP = "notify_only_default_branch";
+    public static final String PUSH_CHANNEL_PROP = "push_channel";
+    public static final String ISSUE_CHANNEL_PROP = "issue_channel";
+    public static final String CONFIDENTIAL_ISSUE_CHANNEL_PROP = "confidential_issue_channel";
+    public static final String MERGE_REQUEST_CHANNEL_PROP = "merge_request_channel";
+    public static final String NOTE_CHANNEL_PROP = "note_channel";
+    public static final String CONFIDENTIAL_NOTE_CHANNEL_PROP = "confidential_note_channel";
+    public static final String TAG_PUSH_CHANNEL_PROP = "tag_push_channel";
+    public static final String PIPELINE_CHANNEL_PROP = "pipeline_channel";
+    public static final String WIKI_PAGE_CHANNEL_PROP = "wiki_page_channel";
+
+    public static final String WEBHOOK_PROP = "webhook";
+    public static final String USERNAME_PROP = "username";
+    public static final String DESCRIPTION_PROP = "description";
+    public static final String TITLE_PROP = "title";
+    public static final String NEW_ISSUE_URL_PROP = "new_issue_url";
+    public static final String ISSUES_URL_PROP = "issues_url";
+    public static final String PROJECT_URL_PROP = "project_url";
+    public static final String PUSH_EVENTS_PROP = "push_events";
 
     private Integer id;
     private String title;
+    private String slug;
     private Date createdAt;
     private Date updatedAt;
     private Boolean active;
 
+    private Boolean commitEvents;
     private Boolean pushEvents;
     private Boolean issuesEvents;
     private Boolean confidentialIssuesEvents;
-    private Boolean commitEvents;
     private Boolean mergeRequestsEvents;
     private Boolean tagPushEvents;
     private Boolean noteEvents;
@@ -32,12 +53,22 @@ public abstract class NotificationService {
 
     private Map<String, Object> properties;
 
+    public abstract GitLabApiForm servicePropertiesForm();
+
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public String getTitle() {
@@ -76,6 +107,19 @@ public abstract class NotificationService {
     // The following methods can be used to configure the notification service
     // *******************************************************************************
 
+    public Boolean getCommitEvents() {
+        return commitEvents;
+    }
+
+    public void setCommitEvents(Boolean commitEvents) {
+        this.commitEvents = commitEvents;
+    }
+
+    protected <T> T withCommitEvents(Boolean commitEvents, T derivedInstance) {
+        this.commitEvents = commitEvents;
+        return (derivedInstance);
+    }
+
     public Boolean getPushEvents() {
         return pushEvents;
     }
@@ -112,20 +156,6 @@ public abstract class NotificationService {
 
     protected <T> T withConfidentialIssuesEvents(Boolean confidentialIssuesEvents, T derivedInstance) {
         this.confidentialIssuesEvents = confidentialIssuesEvents;
-        return (derivedInstance);
-    }
-
-    @JsonIgnore
-    public Boolean getCommitEvents() {
-        return commitEvents;
-    }
-
-    public void setCommitEvents(Boolean commitEvents) {
-        this.commitEvents = commitEvents;
-    }
-
-    protected <T> T withCommitEvents(Boolean commitEvents, T derivedInstance) {
-        setCommitEvents(commitEvents);
         return (derivedInstance);
     }
 
@@ -230,7 +260,7 @@ public abstract class NotificationService {
 
     @JsonIgnore
     protected String getProperty(String prop) {
-        return ((String) getProperty(prop, ""));
+        return (getProperty(prop, ""));
     }
 
     @JsonIgnore
@@ -258,4 +288,18 @@ public abstract class NotificationService {
 
         properties.put(prop, value);
     }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
+    }
+
+	public enum BranchesToBeNotified {
+	    ALL, DEFAULT, PROTECTED, DEFAULT_AND_PROTECTED;
+	    @Override
+		public String toString() {
+	        return (name().toLowerCase());
+	    }
+	}
+
 }

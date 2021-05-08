@@ -2,13 +2,9 @@ package org.gitlab4j.api.systemhooks;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class KeySystemHookEvent implements SystemHookEvent {
+public class KeySystemHookEvent extends AbstractSystemHookEvent {
     
     public static final String KEY_CREATE_EVENT = "key_create";
     public static final String KEY_DESTROY_EVENT = "key_destroy";
@@ -66,5 +62,10 @@ public class KeySystemHookEvent implements SystemHookEvent {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }

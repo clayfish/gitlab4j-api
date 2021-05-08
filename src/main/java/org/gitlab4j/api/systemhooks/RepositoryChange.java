@@ -1,11 +1,7 @@
 package org.gitlab4j.api.systemhooks;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.gitlab4j.api.utils.JacksonJson;
 
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
 public class RepositoryChange {
 
     private String after;
@@ -34,5 +30,10 @@ public class RepositoryChange {
 
     public void setRef(String ref) {
         this.ref = ref;
+    }
+
+    @Override
+    public String toString() {
+        return (JacksonJson.toJsonString(this));
     }
 }
